@@ -1,14 +1,20 @@
 import { LayoutDashboard, BookOpen, Users, MessageSquare, Settings, HelpCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useLocation, useNavigate } from "react-router"
 
 export function Sidebar({ className }: { className?: string }) {
+
+    const navigate = useNavigate();
+    const location = useLocation();
+    const path = location.pathname;
+
     const navItems = [
-        { icon: LayoutDashboard, label: "Dashboard", active: true },
-        { icon: BookOpen, label: "Projects", active: false },
-        { icon: Users, label: "Members", active: false },
-        { icon: MessageSquare, label: "Profile", active: false },
-        { icon: Settings, label: "Settings", active: false },
+        { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+        { icon: BookOpen, label: "Projects", path: "/projects" },
+        { icon: Users, label: "Members", path: "/members" },
+        { icon: MessageSquare, label: "Profile", path: "/profile" },
+        { icon: Settings, label: "Settings", path: "/settings" },
     ]
 
     return (
@@ -25,16 +31,19 @@ export function Sidebar({ className }: { className?: string }) {
             <nav className="flex-1 space-y-2">
                 {navItems.map((item) => (
                     <Button
+                        onClick={() => {
+                            navigate(item.path);
+                        }}
                         key={item.label}
                         variant="ghost"
                         className={cn(
                             "w-full justify-start gap-4 text-base font-medium h-12",
-                            item.active
+                            item.path === path
                                 ? "bg-gray-100 text-primary font-semibold"
                                 : "text-muted-foreground hover:text-primary"
                         )}
                     >
-                        <item.icon className={cn("h-5 w-5", item.active && "text-primary")} />
+                        <item.icon className={cn("h-5 w-5", item.path === path && "text-primary")} />
                         {item.label}
                     </Button>
                 ))}

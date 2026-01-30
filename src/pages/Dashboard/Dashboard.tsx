@@ -2,7 +2,7 @@ import { TasksActivityChart } from "@/components/Dashboard/TasksActivityChart";
 import { TodoProgressChart } from "@/components/Dashboard/TodoProgressChart";
 import { StatusCalendar } from "@/components/Dashboard/StatusCalendar";
 import { TopMembersChart } from "@/components/Dashboard/TopMembersChart";
-import { RecentProjects } from "@/components/Dashboard/RecentProjects";
+import { ProjectsList } from "@/components/Dashboard/ProjectsList";
 
 export default function Dashboard() {
     return (
@@ -32,7 +32,7 @@ export default function Dashboard() {
             </div>
 
             {/* Bottom Row: Recent Projects */}
-            <RecentProjects />
+            <ProjectsList title="Recent Projects" />
         </div>
     );
 }

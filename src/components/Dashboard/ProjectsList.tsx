@@ -52,11 +52,11 @@ const projects = [
     }
 ]
 
-export function RecentProjects() {
+export function ProjectsList({ title="Projects" }: { title?: string }) {
     return (
         <div className="col-span-3 mt-4">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-primary">Recent Projects</h3>
+                <h3 className="text-xl font-bold text-primary">{title}</h3>
                 {/* Carousel controls will be custom positioned if needed, or we use the default ones */}
             </div>
 
