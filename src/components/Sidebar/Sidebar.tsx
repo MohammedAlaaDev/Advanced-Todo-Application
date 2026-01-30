@@ -6,8 +6,7 @@ import { useLocation, useNavigate } from "react-router"
 export function Sidebar({ className }: { className?: string }) {
 
     const navigate = useNavigate();
-    const location = useLocation();
-    const path = location.pathname;
+    const { pathname } = useLocation();
 
     const navItems = [
         { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -20,7 +19,9 @@ export function Sidebar({ className }: { className?: string }) {
     return (
         <div className={cn("flex flex-col h-full bg-white border-r px-6 py-8", className)}>
             {/* Brand */}
-            <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer">
+            <div
+                onClick={() => navigate("/")}
+                className="flex items-center gap-3 mb-10 px-2 cursor-pointer">
                 <div className="bg-primary text-white p-2 rounded-lg">
                     <BookOpen className="h-6 w-6 text-white" fill="white" />
                 </div>
@@ -38,12 +39,12 @@ export function Sidebar({ className }: { className?: string }) {
                         variant="ghost"
                         className={cn(
                             "w-full justify-start gap-4 text-base font-medium h-12",
-                            item.path === path
+                            item.path === pathname
                                 ? "bg-gray-100 text-primary font-semibold"
                                 : "text-muted-foreground hover:text-primary"
                         )}
                     >
-                        <item.icon className={cn("h-5 w-5", item.path === path && "text-primary")} />
+                        <item.icon className={cn("h-5 w-5", item.path === pathname && "text-primary")} />
                         {item.label}
                     </Button>
                 ))}

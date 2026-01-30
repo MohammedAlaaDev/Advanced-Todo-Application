@@ -67,7 +67,7 @@ export function ProjectsList({ title="Projects" }: { title?: string }) {
                 }}
                 className="w-full"
             >
-                <div className="absolute right-12 -top-12 z-10 flex gap-1">
+                <div className="absolute right-12 -top-12 flex gap-1">
                     <CarouselPrevious className="relative left-0 top-0 translate-y-0 h-8 w-8 border-none hover:bg-slate-100 text-primary/70 hover:text-primary" />
                     <CarouselNext className="relative right-0 bottom-0 top-0 translate-y-0 h-8 w-8 border-none hover:bg-slate-100 text-primary/70 hover:text-primary" />
                 </div>

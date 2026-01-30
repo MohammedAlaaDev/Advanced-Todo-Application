@@ -6,7 +6,7 @@ import { ProjectsList } from "@/components/Dashboard/ProjectsList";
 
 export default function Dashboard() {
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="animate-page">
 
             {/* Dashboard Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-6 gap-6">
