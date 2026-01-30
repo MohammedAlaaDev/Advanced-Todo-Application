@@ -67,6 +67,30 @@ export function RightPanel({ className }: { className?: string }) {
                             <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 h-5 px-2 text-[10px] rounded-full">Ai</Badge>
                         </div>
                     </Card>
+                    <Card className="border-0 shadow-sm p-4 bg-white ring-1 ring-slate-100 rounded-2xl">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] text-slate-400 font-medium">Apr 2, 2023</span>
+                            <MoreHorizontal className="h-4 w-4 text-slate-400" />
+                        </div>
+                        <h4 className="font-bold text-sm text-slate-800 mb-1">ChatGPT Tricks for business marketing</h4>
+                        <p className="text-[10px] text-slate-500 leading-relaxed mb-3">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut id dui mi. Fusce varius bibendum ante.</p>
+                        <div className="flex gap-2">
+                            <Badge variant="secondary" className="bg-pink-100 text-pink-700 hover:bg-pink-100 h-5 px-2 text-[10px] rounded-full">Tech</Badge>
+                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 h-5 px-2 text-[10px] rounded-full">Ai</Badge>
+                        </div>
+                    </Card>
+                    <Card className="border-0 shadow-sm p-4 bg-white ring-1 ring-slate-100 rounded-2xl">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] text-slate-400 font-medium">Apr 2, 2023</span>
+                            <MoreHorizontal className="h-4 w-4 text-slate-400" />
+                        </div>
+                        <h4 className="font-bold text-sm text-slate-800 mb-1">ChatGPT Tricks for business marketing</h4>
+                        <p className="text-[10px] text-slate-500 leading-relaxed mb-3">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut id dui mi. Fusce varius bibendum ante.</p>
+                        <div className="flex gap-2">
+                            <Badge variant="secondary" className="bg-pink-100 text-pink-700 hover:bg-pink-100 h-5 px-2 text-[10px] rounded-full">Tech</Badge>
+                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 h-5 px-2 text-[10px] rounded-full">Ai</Badge>
+                        </div>
+                    </Card>
                 </div>
             </div>
         </div>

@@ -49,10 +49,10 @@
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(18.928% 0.07915 260.459);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: oklch(28.306% 0.00292 16.724);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.6031 0.214963 270.5418);
   --primary-foreground: oklch(0.985 0 0);

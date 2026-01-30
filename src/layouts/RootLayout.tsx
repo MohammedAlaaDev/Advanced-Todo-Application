@@ -12,14 +12,19 @@ const RootLayout = () => {
             </aside>
 
             {/* Main Content Area - Flex Grow */}
-            <div className="flex-1 flex flex-col min-w-0 bg-gray-50/50">
-                <header className="shrink-0 px-8 bg-gray-50/50">
+            <div className="flex-1 flex flex-col min-w-0 bg-gray-50/50 overflow-y-auto scrollbar-hide">
+                <header className="shrink-0 px-8 bg-gray-50/50 sticky top-0 z-10 backdrop-blur-sm">
                     <Header />
                 </header>
 
-                <main className="flex-1 overflow-y-auto px-8 pb-8 scrollbar-hide">
+                <main className="flex-1 px-8 pb-8">
                     <div className="max-w-5xl mx-auto md:mx-0 w-full">
                         <Outlet />
+
+                        {/* Right Panel for Mobile/Tablet */}
+                        <div className="xl:hidden mt-8">
+                            <RightPanel className="w-full h-auto border-l-0 border-t pt-8 px-0" />
+                        </div>
                     </div>
                 </main>
             </div>
