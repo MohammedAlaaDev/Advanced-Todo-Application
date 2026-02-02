@@ -28,16 +28,18 @@ const RootLayout = () => {
 
                 {/* Main Content Area - Flex Grow */}
                 <div ref={scrollContainerRef} className="flex-1 flex flex-col min-w-0 bg-gray-50/50 overflow-y-auto scrollbar-hide">
-                    <header className="shrink-0 px-8 bg-gray-50/50 sticky top-0 z-10 backdrop-blur-sm">
+                    <header className="shrink-0 px-8 bg-gray-50/50 sticky top-0 z-50 backdrop-blur-sm">
                         <Header />
                     </header>
 
-                    <main className="flex-1 px-8 pb-8">
+                    <main className="flex-1 pb-4">
                         <div className="max-w-5xl mx-auto md:mx-0 w-full">
-                            <Outlet />
+                            <div className="px-4 sm:px-8">
+                                <Outlet />
+                            </div>
                             {/* Right Panel for Mobile/Tablet */}
                             <div className="xl:hidden mt-8">
-                                <RightPanel className="w-full h-auto border-l-0 border-t pt-8 px-0" />
+                                <RightPanel className="w-full h-auto border-l-0 border-t pt-8 px-4" />
                             </div>
                         </div>
                     </main>
