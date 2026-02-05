@@ -20,11 +20,12 @@ export function RightPanel({ className }: { className?: string }) {
 
                 <div className="space-y-4">
                     {/* Todo Item 1 */}
+
                     <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
                         <div className="flex items-start gap-3 mb-2">
                             <Checkbox id="todo1" defaultChecked className="mt-1 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500 rounded text-white" />
                             <label htmlFor="todo1" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-indigo-900 line-through decoration-indigo-300">
-                                Donate $500 to the charity
+                                Donate $50 to the charity
                             </label>
                         </div>
                         <div className="flex items-center justify-between pl-7">
@@ -35,6 +36,7 @@ export function RightPanel({ className }: { className?: string }) {
                             <span className="text-[10px] text-muted-foreground">May 20, 2020</span>
                         </div>
                     </div>
+                    
                 </div>
             </div>
 

@@ -5,6 +5,7 @@ import Projects from "@/pages/Projects/Projects";
 import Members from "@/pages/Members/Members";
 import Settings from "@/pages/Settings/Settings";
 import Profile from "@/pages/Profile/Profile";
+import NotFound from "@/pages/NotFound/NotFound";
 
 export const router = createBrowserRouter([
     {
@@ -15,7 +16,11 @@ export const router = createBrowserRouter([
             { path: "projects", element: <Projects /> },
             { path: "members", element: <Members /> },
             { path: "profile", element: <Profile /> },
-            { path: "settings", element: <Settings /> }
+            { path: "settings", element: <Settings /> },
         ]
+    },
+    {
+        path: "*",
+        element: <NotFound />
     }
 ])
