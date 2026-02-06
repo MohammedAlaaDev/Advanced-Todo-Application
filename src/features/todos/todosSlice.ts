@@ -1,9 +1,10 @@
+import type { RootState } from "@/app/store";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface todoObject {
     id: string;
     title: string;
-    category: string[];
+    category: (string | undefined)[];
     isCompleted: boolean;
     createdAt: string;
 }
@@ -13,7 +14,15 @@ interface todoState {
 }
 
 const initialState: todoState = {
-    todos: [],
+    todos: [
+        {
+            id: "1",
+            title: "test 1",
+            category: ["Categorytest 1", "Categorytest 2"],
+            isCompleted: false,
+            createdAt: new Date().toISOString()
+        }
+    ],
 }
 
 export const todosSlice = createSlice({
@@ -21,11 +30,11 @@ export const todosSlice = createSlice({
     initialState,
     reducers: {
         addTodo: (state, action: PayloadAction<todoObject>) => {
-            console.log(action.payload);
             state.todos.push(action.payload);
         }
     }
 })
 
 export const { addTodo } = todosSlice.actions
+export const selectTodos = (state: RootState) => state.todos.todos;
 export default todosSlice.reducer

@@ -1,11 +1,16 @@
 import { Plus, MoreHorizontal } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import TodosList from "@/features/todos/TodosList"
+import { useState } from "react"
+import { AddTodoModal } from "@/components/RightPanel/AddTodoModal"
 
 export function RightPanel({ className }: { className?: string }) {
+
+    const [open, setOpen] = useState(false);
+
     return (
         <div className={cn("flex flex-col h-full bg-white border-l px-6 py-8 overflow-y-auto w-[320px] shrink-0", className)}>
 
@@ -13,31 +18,15 @@ export function RightPanel({ className }: { className?: string }) {
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="font-bold text-lg text-foreground underline decoration-2 decoration-gray-300 underline-offset-4">My Todos</h2>
-                    <Button size="icon" variant="secondary" className="h-6 w-6 rounded bg-indigo-100 text-indigo-600 hover:bg-indigo-200 shadow-none">
+                    <Button onClick={() => setOpen(true)} size="icon" variant="secondary" className="h-6 w-6 rounded bg-indigo-100 text-indigo-600 hover:bg-indigo-200 shadow-none">
                         <Plus className="h-4 w-4" />
                     </Button>
                 </div>
 
                 <div className="space-y-4">
-                    {/* Todo Item 1 */}
-
-                    <div className="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100">
-                        <div className="flex items-start gap-3 mb-2">
-                            <Checkbox id="todo1" defaultChecked className="mt-1 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500 rounded text-white" />
-                            <label htmlFor="todo1" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-indigo-900 line-through decoration-indigo-300">
-                                Donate $50 to the charity
-                            </label>
-                        </div>
-                        <div className="flex items-center justify-between pl-7">
-                            <div className="flex gap-1">
-                                <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 h-5 px-1.5 text-[10px] rounded">Donations</Badge>
-                                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 h-5 px-1.5 text-[10px] rounded">Social</Badge>
-                            </div>
-                            <span className="text-[10px] text-muted-foreground">May 20, 2020</span>
-                        </div>
-                    </div>
-                    
+                    <TodosList />
                 </div>
+                <AddTodoModal open={open} onOpenChange={setOpen} />
             </div>
 
             {/* Notes Section */}
