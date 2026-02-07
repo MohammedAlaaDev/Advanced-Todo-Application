@@ -14,7 +14,7 @@ export function RightPanel({ className }: { className?: string }) {
     return (
         <div className={cn("flex flex-col h-full bg-white border-l px-6 py-8 overflow-y-auto w-[320px] shrink-0", className)}>
 
-            {/* My Todos Section */}
+            {/* Personal Todos Section */}
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="font-bold text-lg text-foreground underline decoration-2 decoration-gray-300 underline-offset-4">My Todos</h2>

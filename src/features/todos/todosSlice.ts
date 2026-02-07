@@ -3,7 +3,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface todoObject {
     id: string;
-    title: string;
+    title: string | boolean;
     category: (string | undefined)[];
     isCompleted: boolean;
     createdAt: string;
@@ -29,12 +29,16 @@ export const todosSlice = createSlice({
     name: "todos",
     initialState,
     reducers: {
-        addTodo: (state, action: PayloadAction<todoObject>) => {
+        addTodo: (state: todoState, action: PayloadAction<todoObject>) => {
             state.todos.push(action.payload);
+        },
+        toggleTodo: (state: todoState, action: PayloadAction<string>) => {
+            const toggledTodo = state.todos.find((todo: todoObject) => todo.id === action.payload);
+            if (toggledTodo) toggledTodo.isCompleted = !toggledTodo.isCompleted;
         }
     }
 })
 
-export const { addTodo } = todosSlice.actions
+export const { addTodo, toggleTodo } = todosSlice.actions
 export const selectTodos = (state: RootState) => state.todos.todos;
 export default todosSlice.reducer
