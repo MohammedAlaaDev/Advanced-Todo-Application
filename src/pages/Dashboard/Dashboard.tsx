@@ -1,15 +1,18 @@
-import { TasksActivityChart } from "@/components/Dashboard/TasksActivityChart";
-import { TodoProgressChart } from "@/components/Dashboard/TodoProgressChart";
-import { StatusCalendar } from "@/components/Dashboard/StatusCalendar";
-import { TopMembersChart } from "@/components/Dashboard/TopMembersChart";
-import { ProjectsList } from "@/components/Dashboard/ProjectsList";
+// Dashboard Charts
+import TasksActivityChart from "@/components/Dashboard/TasksActivityChart";
+import TodoProgressChart from "@/components/Dashboard/TodoProgressChart";
+import StatusCalendar from "@/components/Dashboard/StatusCalendar";
+import TopMembersChart from "@/components/Dashboard/TopMembersChart";
 
-export default function Dashboard() {
+// Components
+import TasksList from "@/components/Tasks/TasksList";
+const Dashboard = () => {
+
     return (
         <div className="animate-page">
 
             {/* Dashboard Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-6 gap-6 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-6 gap-6 items-stretch mb-12">
                 {/* Activity Graphic - Full width on LG, 2/3 on XL */}
                 <div className="col-span-1 lg:col-span-2 xl:col-span-4">
                     <TasksActivityChart />
@@ -32,7 +35,8 @@ export default function Dashboard() {
             </div>
 
             {/* Bottom Row: Recent Projects */}
-            <ProjectsList title="Recent Projects" />
-        </div>
+            <TasksList />
+        </div>                                                                                                 
     );
 }
+export default Dashboard;

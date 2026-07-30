@@ -7,21 +7,32 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import type { deleteModalProps } from "@/types";
 import { useDispatch } from "react-redux";
 import { deleteNote } from "@/features/notes/notesSlice";
+import { useQueryParam } from "@/hooks/useQueryParam";
 
-export function DeleteNoteModal({ open, onOpenChange, deletedId }: deleteModalProps) {
+const DeleteNoteModal = () => {
+
+    const { modalKey, id, openItemModal, closeItemModal } = useQueryParam();
+
+    const open = modalKey === "delete-note";
+    const setOpen = (open: boolean) => {
+        if (open) {
+            openItemModal(id, "delete-note");
+        } else {
+            closeItemModal();
+        }
+    }
 
     const dispatch = useDispatch();
 
-    const handleDeleteTodo = (id: string | undefined) => {
+    const handleDeleteTodo = () => {
         if (id) dispatch(deleteNote(id));
-        onOpenChange?.(false);
+        setOpen(false);
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>Delete Note</DialogTitle>
@@ -30,10 +41,11 @@ export function DeleteNoteModal({ open, onOpenChange, deletedId }: deleteModalPr
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange?.(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={() => handleDeleteTodo(deletedId)}>Delete</Button>
+                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleDeleteTodo}>Delete</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     )
 }
+export default DeleteNoteModal;

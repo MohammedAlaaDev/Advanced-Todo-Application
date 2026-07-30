@@ -5,3 +5,5 @@ export const todoSchema = z.object({
     category1: z.string().max(12, "Max 12 characters").optional(),
     category2: z.string().max(12, "Max 12 characters").optional(),
 })
+
+export type TodoFormError = z.inferFormattedError<typeof todoSchema>;

@@ -2,24 +2,34 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { editTaskThumbnail } from "@/features/tasks/tasksSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { editTaskThumbnail, selectAllTasks } from "@/features/tasks/tasksSlice";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
+import { useParams } from "react-router";
 
-interface EditTaskThumbnailModalProps {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-    taskId?: string;
-    activeImage?: string;
-}
+const EditTaskThumbnailModal = () => {
+    const { modalKey, openModal, closeModal } = useQueryParam() as QueryParam;
+    const { id: taskId } = useParams();
 
-const EditTaskThumbnailModal = ({ open, setOpen, taskId, activeImage }: EditTaskThumbnailModalProps) => {
+    const open = modalKey === "task-thumbnail";
+    const setOpen = (open: boolean) => {
+        if (open && taskId) {
+            openModal?.("task-thumbnail");
+        } else {
+            closeModal?.();
+        }
+    };
+
+    const tasks = useSelector(selectAllTasks);
+    const task = tasks.find((t) => t.id === taskId);
+    const activeImage = task?.thumbnail;
 
     const initialArr = Array.from({ length: 6 }, (_, idx) => ({
         path: `/assets/tasks/task${idx + 1}.png`,
         chosen: false,
     }));
 
-    const imagesArr = initialArr.map((item) => item.path === activeImage ? { ...item, chosen: true, } : { ...item })
+    const imagesArr = initialArr.map((item) => item.path === activeImage ? { ...item, chosen: true, } : { ...item });
 
     const [thumbnailImages, setThumbnailImages] = useState(imagesArr);
     const [prevChosenIdx, setPrevChosenIdx] = useState<number>(-1);
@@ -27,12 +37,10 @@ const EditTaskThumbnailModal = ({ open, setOpen, taskId, activeImage }: EditTask
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (!open) {
-            const index = imagesArr.findIndex((item) => item.chosen);
-            setPrevChosenIdx(index);
-            setThumbnailImages(imagesArr);
-        }
-    }, [open]);
+        const index = imagesArr.findIndex((item) => item.chosen);
+        setPrevChosenIdx(index);
+        setThumbnailImages(imagesArr);
+    }, [open, activeImage]);
 
     const handleChooseToggle = (oldActiveIdx: number, newActiveIdx: number) => {
         const newArr = [...thumbnailImages];
@@ -48,12 +56,12 @@ const EditTaskThumbnailModal = ({ open, setOpen, taskId, activeImage }: EditTask
     };
 
     const handleSave = () => {
-        if (prevChosenIdx !== -1) {
+        if (prevChosenIdx !== -1 && taskId) {
             const chosenImage = thumbnailImages.find((item) => item.chosen)?.path;
             const sentImage = chosenImage ? chosenImage : "";
             dispatch(editTaskThumbnail({ taskId, chosenImage: sentImage }));
         }
-        setOpen(false);
+        closeModal?.();
     };
 
     return (
@@ -84,7 +92,7 @@ const EditTaskThumbnailModal = ({ open, setOpen, taskId, activeImage }: EditTask
                 </div>
 
                 <DialogFooter className="flex justify-end gap-2 pt-4">
-                    <Button variant="secondary" onClick={() => setOpen(false)}>
+                    <Button variant="secondary" onClick={() => closeModal?.()}>
                         Cancel
                     </Button>
                     <Button onClick={handleSave}>Save</Button>

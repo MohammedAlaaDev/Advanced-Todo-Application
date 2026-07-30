@@ -9,20 +9,25 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { deleteTask } from "@/features/tasks/tasksSlice";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import { useDispatch } from "react-redux";
-import type { ModalProps } from "@/types";
 
-interface DeleteTaskModalProps extends ModalProps {
-    deletedId?: string;
-    setDeletedId: (id: string) => void;
-}
-
-function DeleteTaskModal({ open, onOpenChange, deletedId, setDeletedId }: DeleteTaskModalProps) {
+function DeleteTaskModal() {
     const dispatch = useDispatch();
+    const { modalKey, id: deletedId, openItemModal, closeItemModal } = useQueryParam() as QueryParam;
+
+    const open = modalKey === "delete-task";
+    const setOpen = (open: boolean) => {
+        if (open && deletedId) {
+            openItemModal?.(deletedId, "delete-task");
+        } else {
+            closeItemModal?.();
+        }
+    };
 
     return (
-        <Dialog onOpenChange={onOpenChange} open={open}>
-            <form>
+        <Dialog onOpenChange={setOpen} open={open}>
+            <form onSubmit={(e) => e.preventDefault()}>
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
                         <DialogTitle>Delete Task?</DialogTitle>
@@ -36,12 +41,12 @@ function DeleteTaskModal({ open, onOpenChange, deletedId, setDeletedId }: Delete
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
                         <Button
+                            type="button"
                             onClick={() => {
                                 if (deletedId) {
                                     dispatch(deleteTask(deletedId));
                                 }
-                                onOpenChange?.(false);
-                                setDeletedId("");
+                                closeItemModal?.();
                             }}
                             className="text-white"
                         >

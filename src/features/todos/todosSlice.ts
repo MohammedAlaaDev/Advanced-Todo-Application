@@ -1,5 +1,5 @@
 import type { RootState } from "@/app/store";
-import type { todoObject, todoState } from "@/types";
+import type { TodoObject, todoState } from "@/types";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: todoState = {
@@ -10,20 +10,22 @@ export const todosSlice = createSlice({
     name: "todos",
     initialState,
     reducers: {
-        addTodo: (state: todoState, action: PayloadAction<todoObject>) => {
-            state.todos.push(action.payload);
+        addTodo: (state: todoState, action: PayloadAction<{ data: TodoObject }>) => {
+            const { data } = action.payload;
+            state.todos.push(data);
         },
         toggleTodo: (state: todoState, action: PayloadAction<string>) => {
-            const toggledTodo = state.todos.find((todo: todoObject) => todo.id === action.payload);
+            const toggledTodo = state.todos.find((todo: TodoObject) => todo.id === action.payload);
             if (toggledTodo) toggledTodo.isCompleted = !toggledTodo.isCompleted;
         },
-        editTodo: (state: todoState, action: PayloadAction<todoObject>) => {
-            const updatedTodo = action.payload;
-            const editedTodo = state.todos.find((todo: todoObject) => todo.id === updatedTodo.id);
+        editTodo: (state: todoState, action: PayloadAction<{ data: TodoObject }>) => {
+            const { data } = action.payload;
+
+            const editedTodo = state.todos.find((todo: TodoObject) => todo.id === data.id);
             if (editedTodo) {
-                editedTodo.title = updatedTodo.title;
-                editedTodo.category = updatedTodo.category;
-                editedTodo.createdAt = updatedTodo.createdAt;
+                editedTodo.title = data.title;
+                editedTodo.category = data.category;
+                editedTodo.editedAt = data.editedAt;
                 editedTodo.edited = true;
             }
         },

@@ -1,11 +1,13 @@
 import type { InputErrorProps } from "@/types";
 
-export function InputError({ message, keyErr, className }: InputErrorProps) {
+const InputError = ({ message, className }: InputErrorProps) => {
     if (!message) return null;
 
     return (
-        <p key={keyErr} className={`${className} animate-shake text-red-500 text-[13px] font-medium selection:bg-red-100`}>
+        <p className={`${className || ""} animate-shake text-red-500 text-[13px] font-medium selection:bg-red-100 input-error`
+        }>
             {message}
-        </p>
+        </p >
     );
 }
+export default InputError;

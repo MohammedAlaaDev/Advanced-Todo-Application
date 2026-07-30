@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import TimeDisplay from "@/components/Header/TimeDisplay"
 
-export function Header() {
+const Header = () => {
     return (
         <div className="flex items-center justify-between py-6 px-1">
             <div>
@@ -24,3 +24,5 @@ export function Header() {
         </div>
     )
 }
+
+export default Header;

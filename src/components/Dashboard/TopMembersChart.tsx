@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, type ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { useSelector } from 'react-redux'
 import { selectTodos } from '@/features/todos/todosSlice'
-import type { todoObject } from "@/types"
+import type { TodoObject } from "@/types"
 import { useThemeContext } from "@/contexts/theme/ThemeProvider"
 
 const chartConfig = {
@@ -12,8 +12,8 @@ const chartConfig = {
     },
 } satisfies ChartConfig
 
-export function TopMembersChart() {
-    const completedTodosCount = useSelector(selectTodos).filter((todo: todoObject) => todo.isCompleted).length;
+const TopMembersChart = () => {
+    const completedTodosCount = useSelector(selectTodos).filter((todo: TodoObject) => todo.isCompleted).length;
 
     const { theme } = useThemeContext();
 
@@ -78,3 +78,5 @@ export function TopMembersChart() {
         </Card>
     )
 }
+
+export default TopMembersChart;

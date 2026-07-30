@@ -9,19 +9,29 @@ import {
 import { Button } from "@/components/ui/button"
 import { useDispatch } from "react-redux";
 import { deleteTodo } from "@/features/todos/todosSlice";
-import type { deleteModalProps } from "@/types";
+import { useQueryParam } from "@/hooks/useQueryParam";
 
+const DeleteTodoModal = () => {
 
-export function DeleteTodoModal({ open, onOpenChange, deletedId }: deleteModalProps) {
     const dispatch = useDispatch();
 
-    const handleDeleteTodo = (id: string | undefined) => {
+    const { modalKey, closeItemModal, id } = useQueryParam();
+
+    const open = modalKey === "delete-todo";
+
+    const handleDeleteTodo = () => {
         if (id) dispatch(deleteTodo(id));
-        onOpenChange?.(false);
+        closeItemModal();
+    }
+
+    const setOpen = (open: boolean) => {
+        if (!open) {
+            closeItemModal();
+        }
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>Delete Todo</DialogTitle>
@@ -30,10 +40,11 @@ export function DeleteTodoModal({ open, onOpenChange, deletedId }: deleteModalPr
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange?.(false)}>Cancel</Button>
-                    <Button variant="destructive" onClick={() => handleDeleteTodo(deletedId)}>Delete</Button>
+                    <Button variant="outline" onClick={closeItemModal}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleDeleteTodo}>Delete</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     )
 }
+export default DeleteTodoModal;

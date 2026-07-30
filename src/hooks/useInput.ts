@@ -1,10 +1,15 @@
 import { useState } from "react";
 
 // custom hook for input
-export const useInput = (initialState: string) => {
+export const useInput = (initialState: string, callback?: () => void) => {
+
     const [value, setValue] = useState(initialState);
+
     const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setValue(e.target.value);
+        if (callback) {
+            callback();
+        }
     }
 
     const reset = () => {
@@ -15,5 +20,14 @@ export const useInput = (initialState: string) => {
         setValue(initialState);
     }
 
-    return { value, onChange, reset, fillInitialState };
+    return {
+        bind: {
+            value,
+            onChange,
+        },
+        value,
+        setValue,
+        reset,
+        fillInitialState
+    };
 }

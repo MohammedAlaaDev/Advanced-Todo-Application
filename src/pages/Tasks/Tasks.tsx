@@ -1,13 +1,15 @@
-import { MoreHorizontal, Plus } from 'lucide-react';
-import { TasksList } from '@/components/Tasks/TasksList';
-import AddTaskModal from '@/components/Tasks/AddTaskModal';
-import DeleteTaskModal from '@/components/Tasks/DeleteTaskModal';
+// React & React Router
+import { useNavigate } from 'react-router';
+
+// State Management & Utilities
 import { useSelector } from 'react-redux';
 import { selectAllTasks } from '@/features/tasks/tasksSlice';
 import { format } from 'date-fns';
+import { useQueryParam, type QueryParam } from '@/hooks/useQueryParam';
+
+// UI & Icons
+import { MoreHorizontal, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,27 +17,26 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
+// Components
+import TasksList from '@/components/Tasks/TasksList';
 import TasksSearchBar from '@/components/Tasks/TasksSearchBar';
 
-export default function Tasks() {
-
-    const tasks = useSelector(selectAllTasks)
+const Tasks = () => {
+    const { openModal, openItemModal } = useQueryParam() as QueryParam;
+    const tasks = useSelector(selectAllTasks);
     const navigate = useNavigate();
-    const [addTaskOpen, setAddTaskOpen] = useState<boolean>(false);
-    const [deleteTaskOpen, setDeleteTaskOpen] = useState<boolean>(false);
-    const [deletedTaskId, setDeletedTaskId] = useState<string>("");
 
     const recentTasks = tasks.length ? tasks.slice(-3) : [];
 
     const handleViewTask = (taskId: string) => {
         navigate(`/tasks/${taskId}`);
-    }
+    };
 
     const handleDeleteTask = (taskId: string) => {
         if (!taskId) return;
-        setDeletedTaskId(taskId);
-        setDeleteTaskOpen(true);
-    }
+        openItemModal?.(taskId, "delete-task");
+    };
 
     return (
         <div className="space-y-12 animate-page relative">
@@ -88,7 +89,7 @@ export default function Tasks() {
                     {
                         Array.from({ length: 3 - recentTasks.length }).map((_, idx) => (
                             <div key={idx} className="relative pt-4">
-                                <Button onClick={() => setAddTaskOpen(true)} className="w-full folder-shape p-8 shadow-sm bg-primary/30 hover:bg-primary/50 transition-all flex items-center justify-center h-full rounded-3xl">
+                                <Button onClick={() => openModal?.("add-task")} className="w-full folder-shape p-8 shadow-sm bg-primary/30 hover:bg-primary/50 transition-all flex items-center justify-center h-full rounded-3xl">
                                     <div className="h-11 w-11 rounded-full bg-white text-primary shadow-sm flex items-center justify-center hover:bg-slate-100">
                                         <Plus className="h-5 w-5" />
                                     </div>
@@ -100,23 +101,17 @@ export default function Tasks() {
             </section>
 
             {/* Main Projects Section */}
-            <section className="space-y-6">
-                <TasksList
-                    title="All Tasks"
-                    setAddOpen={setAddTaskOpen}
-                    setDeletedTaskId={setDeletedTaskId}
-                    setDeleteOpen={setDeleteTaskOpen}
-                />
-            </section>
+            <TasksList title="All Tasks" />
 
-            <AddTaskModal open={addTaskOpen} setOpen={setAddTaskOpen} />
-            <DeleteTaskModal
-                open={deleteTaskOpen}
-                onOpenChange={setDeleteTaskOpen}
-                deletedId={deletedTaskId}
-                setDeletedId={setDeletedTaskId}
-            />
+            <Button
+                onClick={() => {
+                    openModal?.("add-task");
+                }}
+                className="sticky bottom-4 left-4 z-40 p-4 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all flex items-center justify-center">
+                <Plus className="h-6 w-6 text-white" />
+            </Button>
         </div>
     );
 };
 
+export default Tasks;

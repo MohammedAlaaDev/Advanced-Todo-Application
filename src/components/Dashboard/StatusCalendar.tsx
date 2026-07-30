@@ -3,7 +3,7 @@ import React from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export function StatusCalendar() {
+const StatusCalendar = () => {
     const [currentDate, setCurrentDate] = React.useState(new Date())
 
     const getDaysInWeek = (date: Date) => {
@@ -42,7 +42,7 @@ export function StatusCalendar() {
     const monthYearString = currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })
 
     return (
-        <div className="bg-white dark:bg-card rounded-3xl p-6 xl:px-4 xl:py-4 flex flex-col h-full min-h-[250px]">
+        <div className="bg-white dark:bg-card rounded-3xl p-6 xl:px-4 xl:py-4 flex flex-col h-full min-h-62.5">
             <h3 className="text-lg font-bold mb-3 text-primary">Status</h3>
 
             <div className="flex flex-col justify-center flex-1">
@@ -84,3 +84,5 @@ export function StatusCalendar() {
         </div>
     )
 }
+
+export default StatusCalendar;

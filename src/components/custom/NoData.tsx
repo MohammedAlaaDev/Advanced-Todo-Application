@@ -1,18 +1,12 @@
 import Lottie from "lottie-react"
 import type { NoDataProps } from "@/types"
-import { useDispatch } from "react-redux"
-import { resetTempCategory } from "@/features/notes/notesSlice";
 
 const NoData = ({ setAddOpen, animationData, message, image = false, src }: NoDataProps) => {
-
-    const dispatch = useDispatch();
-
 
     return (
         <div
             onClick={() => {
-                setAddOpen(true);
-                if (image) dispatch(resetTempCategory());
+                setAddOpen?.(true);
             }}
             className="cursor-pointer flex flex-col items-center justify-center w-60 mx-auto border-2 border-dotted border-primary rounded-4xl">
             <div className="h-25 w-25">

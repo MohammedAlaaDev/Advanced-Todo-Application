@@ -3,16 +3,16 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useLocation, useNavigate } from "react-router"
 
-export function Sidebar({ className }: { className?: string }) {
+const Sidebar = ({ className }: { className?: string }) => {
 
     const navigate = useNavigate();
     const { pathname } = useLocation();
 
     const navItems = [
         { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-        { icon: BookOpen, label: "Tasks", path: "/tasks" },
         { icon: Users, label: "Members", path: "/members" },
-        { icon: MessageSquare, label: "Profile", path: "/profile" },
+        { icon: BookOpen, label: "Tasks", path: "/tasks" },
+        { icon: MessageSquare, label: "Profile", path: "/members/myid" },
         { icon: Settings, label: "Settings", path: "/settings" },
     ]
 
@@ -74,3 +74,5 @@ export function Sidebar({ className }: { className?: string }) {
         </div>
     )
 }
+
+export default Sidebar;

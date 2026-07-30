@@ -1,28 +1,34 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, ChevronRight, ArrowLeft, Check } from "lucide-react";
+import { ChevronRight, ArrowLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import TaskDetailsForm, { type TaskDetailsRefType } from "@/components/Tasks/TaskDetailsForm";
 import MembersChoose from "@/components/Tasks/MembersChoose";
 import TaskMedia, { type MediaRefType } from "@/components/Tasks/TaskMedia";
 import { selectMembers } from "@/features/members/membersSlice";
 import type { MemberObject } from "@/types";
 import { addAssociatedMembers, addNewTask, resetTempTask } from "@/features/tasks/tasksSlice";
-import { InputError } from "@/components/custom/InputError";
-import { useError } from "@/hooks/useError";
+import InputError from "@/components/custom/InputError";
 import TaskThumbnail, { type TaskThumbnailRef } from "@/components/Tasks/TaskThumbnail";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 
 type DivElementType = HTMLDivElement | null;
 
 type ModifiedMember = MemberObject & { selected: boolean };
 
-interface AddTaskModalProps {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-}
+const AddTaskModal = () => {
+    const { modalKey, openModal, closeModal } = useQueryParam() as QueryParam;
 
-const AddTaskModal = ({ open, setOpen }: AddTaskModalProps) => {
+    const open = modalKey === "add-task";
+    const setOpen = (open: boolean) => {
+        if (open) {
+            openModal?.("add-task");
+        } else {
+            closeModal?.();
+        }
+    };
+
     const members = useSelector(selectMembers);
     const [progress, setProgress] = useState(1);
     const [modifiedMembers, setModifiedMembers] = useState<ModifiedMember[]>([]);
@@ -52,12 +58,12 @@ const AddTaskModal = ({ open, setOpen }: AddTaskModalProps) => {
         resetForm();
     }, [open]);
 
-    const selectedMembersError = useError(undefined);
+    const [selectedMembersError,setSelectedMembersError] = useState<string | undefined>(undefined);
     const [errorKey, setErrorKey] = useState<number>(0);
 
     useEffect(() => {
         if (progress === 2) {
-            selectedMembersError.setErrorMsg(undefined);
+            setSelectedMembersError(undefined);
         }
     }, [progress])
 
@@ -65,12 +71,12 @@ const AddTaskModal = ({ open, setOpen }: AddTaskModalProps) => {
         const selected = modifiedMembers.filter((member) => member.selected).map((mem) => mem.id);
 
         if (selected.length === 0) {
-            selectedMembersError.setErrorMsg("choose at least one member");
+            setSelectedMembersError("choose at least one member");
             setErrorKey(p => p + 1);
             return false;
         }
 
-        selectedMembersError.setErrorMsg(undefined);
+        setSelectedMembersError(undefined);
 
         dispatch(addAssociatedMembers({ selected }));
         return true;
@@ -133,14 +139,6 @@ const AddTaskModal = ({ open, setOpen }: AddTaskModalProps) => {
         <Dialog open={open} onOpenChange={(value) => {
             setOpen(value);
         }}>
-            <DialogTrigger asChild>
-                <Button
-                    className="animate-fade-in sticky bottom-4 left-4 z-40 p-4 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center justify-center"
-                    aria-label="Add task"
-                >
-                    <Plus className="h-8 w-8 text-white" />
-                </Button>
-            </DialogTrigger>
             <DialogContent
                 onEscapeKeyDown={(e) => {
                     e.preventDefault();
@@ -175,7 +173,7 @@ const AddTaskModal = ({ open, setOpen }: AddTaskModalProps) => {
                                     selected
                                 </div>
                             </div>
-                            <InputError keyErr={errorKey} message={selectedMembersError.errorMsg} />
+                            <InputError key={errorKey} message={selectedMembersError} />
                         </>
                     }
                     <form className={`grid ${progress === 2 ? "max-h-100" : "max-h-128"} gap-5 p-2 custom-scrollbar overflow-y-auto`} onSubmit={(e) => { e.preventDefault(); handleNext(); }}>

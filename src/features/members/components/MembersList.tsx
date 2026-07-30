@@ -5,24 +5,23 @@ import {
     CarouselPrevious,
     CarouselNext
 } from "@/components/ui/carousel"
-import { MemberCard } from "@/components/Members/MemberCard"
+import MemberCard from "@/features/members/components/MemberCard"
 import { useSelector } from "react-redux";
 import { selectMembers } from "@/features/members/membersSlice";
 
 import people from "@/assets/images/people.png";
 import type { MemberObject } from "@/types";
+import { useQueryParam } from "@/hooks/useQueryParam";
 
 interface MembersListProps {
     title?: string;
-    setAddOpen: (open: boolean) => void;
-    setDeleteOpen: (open: boolean) => void;
-    setDeletedId: (id: string) => void;
 }
 
-export function MembersList({ title = "Members", setAddOpen, setDeleteOpen, setDeletedId }: MembersListProps) {
+const MembersList = ({ title = "Members" }: MembersListProps) => {
 
     const members = useSelector(selectMembers);
-    
+    const { openModal } = useQueryParam();
+
     return (
         <div className="col-span-3 mt-4">
             <div className="flex items-center justify-start gap-5 mb-4">
@@ -49,8 +48,6 @@ export function MembersList({ title = "Members", setAddOpen, setDeleteOpen, setD
                                     <CarouselItem key={person.id} className="pl-6 lg:basis-1/2">
                                         <MemberCard
                                             member={{ ...person }}
-                                            setDeleteOpen={setDeleteOpen}
-                                            setDeletedId={setDeletedId}
                                         />
                                     </CarouselItem>
                                 )
@@ -60,7 +57,7 @@ export function MembersList({ title = "Members", setAddOpen, setDeleteOpen, setD
                     :
                     <div
                         onClick={() => {
-                            setAddOpen(true);
+                            openModal("add-member");
                         }}
                         className="cursor-pointer w-full h-48 relative overflow-hidden flex items-center justify-center bg-primary/10 rounded-lg border-primary border-2 border-dotted">
                         <img src={people} alt="No Members" className="w-full opacity-20" />
@@ -73,3 +70,5 @@ export function MembersList({ title = "Members", setAddOpen, setDeleteOpen, setD
         </div>
     )
 }
+
+export default MembersList;

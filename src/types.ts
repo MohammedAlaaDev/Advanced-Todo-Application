@@ -1,25 +1,26 @@
 import type z from "zod";
-import type { noteSchema, tempCategoriesSchema } from "@/features/notes/schemas/noteSchema";
+import type { noteSchema } from "@/features/notes/schemas/noteSchema";
 import type { personalDetailsSchema } from "@/features/members/schemas/personalDetailsSchema";
-import type { projectContributionSchema } from "./features/members/schemas/projectContributionSchema";
-import { tempLinksSchema, type skillsSocialsSchema, type tempStackSchema } from "./features/members/schemas/skillsSocialsSchema";
-import type { taskDetailsSchema } from "./features/tasks/schemas/taskSchema";
+import type { projectContributionSchema } from "@/features/members/schemas/projectContributionSchema";
+import { tempLinksSchema, type skillsSocialsSchema, type tempStackSchema } from "@/features/members/schemas/skillsSocialsSchema";
+import type { taskDetailsSchema } from "@/features/tasks/schemas/taskSchema";
 
-export interface todoObject {
+export interface TodoObject {
     id: string;
     title: string;
     category: (string | undefined)[];
     isCompleted: boolean;
     createdAt: string;
+    editedAt: string;
     edited?: boolean;
 }
 
 export interface todoState {
-    todos: todoObject[];
+    todos: TodoObject[];
 }
 
 export interface noteObject {
-    id: string | undefined;
+    id: string;
     createdAt: string;
     edited?: boolean;
     title: string;
@@ -29,7 +30,6 @@ export interface noteObject {
 
 export interface notesState {
     notes: noteObject[]
-    tempCategories: string[];
 }
 
 export interface TempPersonalDetails {
@@ -127,9 +127,7 @@ export interface editTodoError {
     category2?: string[];
 }
 
-export type NoteAddError = z.inferFormattedError<typeof noteSchema>
-
-export type CatSizeError = z.inferFormattedError<typeof tempCategoriesSchema>
+export type NoteError = z.inferFormattedError<typeof noteSchema>
 
 export type PersonalDetailsError = z.inferFormattedError<typeof personalDetailsSchema>;
 
@@ -150,12 +148,11 @@ export type TempProjectErrorData = {
 
 export interface InputErrorProps {
     message?: string;
-    keyErr: number | null;
     className?: string;
 }
 
 export interface NoDataProps {
-    setAddOpen: (open: boolean) => void,
+    setAddOpen?: (open: boolean) => void,
     animationData?: any;
     message: string;
     image?: boolean;

@@ -9,7 +9,7 @@ type Props = {
     query: string;
 }
 
-export default function MembersSearchDropdown({ members, query }: Props) {
+const MembersSearchDropdown = ({ members, query }: Props) => {
     const navigate = useNavigate();
 
     return (
@@ -18,7 +18,7 @@ export default function MembersSearchDropdown({ members, query }: Props) {
                 {members.length === 0 ? (
                     <div className="py-4 px-3 text-center text-sm text-slate-500 dark:text-slate-400">No members found for "{query}"</div>
                 ) : (
-                    <div className="max-h-64 overflow-auto">
+                    <div className="max-h-64 p-2 overflow-auto custom-scrollbar">
                         {members.map((m) => (
                             <div
                                 key={m.id}
@@ -54,3 +54,5 @@ export default function MembersSearchDropdown({ members, query }: Props) {
         </div>
     );
 }
+
+export default MembersSearchDropdown;

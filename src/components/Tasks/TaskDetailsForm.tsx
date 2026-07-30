@@ -1,10 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { InputError } from "@/components/custom/InputError";
+import InputError from "@/components/custom/InputError";
 import { Plus, Trash, X } from "lucide-react";
 import { forwardRef, useImperativeHandle, useState } from "react";
-import { useError } from "@/hooks/useError";
 import { Button } from "@/components/ui/button";
 import { useInput } from "@/hooks/useInput";
 import type { taskDetailsObject, TaskError } from "@/types";
@@ -26,7 +25,7 @@ const TaskDetailsForm = forwardRef<TaskDetailsRefType, {}>((_, ref) => {
     const titleInput = useInput(tempTaskDetails.title);
     const descriptionInput = useInput(tempTaskDetails.description);
 
-    const categoryLengthError = useError(undefined);
+    const [categoryLengthError, setCategoryLengthError] = useState<string | undefined>(undefined);
     const [zodError, setZodError] = useState<TaskError | null>(null);
 
     const [categories, setCategories] = useState<string[]>(tempTaskDetails.categories);
@@ -47,17 +46,17 @@ const TaskDetailsForm = forwardRef<TaskDetailsRefType, {}>((_, ref) => {
     const handleAddCategory = () => {
         if (categories.length >= 6) {
             setRenderKey((prev) => prev + 1);
-            categoryLengthError.setErrorMsg("Max 6 categories");
+            setCategoryLengthError("Max 6 categories");
             return;
         }
         setCategories((prev) => [...prev, ""]);
-        categoryLengthError.setErrorMsg(undefined);
+        setCategoryLengthError(undefined);
     };
 
     const handleRemoveCategory = (index: number) => {
         if (categories.length <= 1) return;
         setCategories((prev) => prev.filter((_, idx) => idx !== index));
-        categoryLengthError.setErrorMsg(undefined);
+        setCategoryLengthError(undefined);
     };
 
     const handleCategoryChange = (index: number, value: string) => {
@@ -82,7 +81,7 @@ const TaskDetailsForm = forwardRef<TaskDetailsRefType, {}>((_, ref) => {
             const error: TaskError = validationResult.error.format();
             setRenderKey((prev) => prev + 1);
             setZodError(error);
-            categoryLengthError.setErrorMsg(error.categories?._errors[0]);
+            setCategoryLengthError(error.categories?._errors[0]);
             return false;
         }
 
@@ -90,7 +89,7 @@ const TaskDetailsForm = forwardRef<TaskDetailsRefType, {}>((_, ref) => {
 
         dispatch(addTempTaskDetails({ data }));
 
-        categoryLengthError.setErrorMsg(undefined);
+        setCategoryLengthError(undefined);
         setZodError(null);
         return true;
     };
@@ -102,29 +101,27 @@ const TaskDetailsForm = forwardRef<TaskDetailsRefType, {}>((_, ref) => {
                 <Input
                     id="task-title"
                     placeholder="Enter task title"
-                    value={titleInput.value}
-                    onChange={titleInput.onChange}
+                    {...titleInput.bind}
                     className="transition-all focus-visible:ring-0 focus-visible:outline-none"
                 />
-                <InputError message={zodError?.title?._errors[0]} keyErr={renderKey} />
+                <InputError message={zodError?.title?._errors[0]} key={renderKey} />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="task-description">Description</Label>
                 <Textarea
                     id="task-description"
                     placeholder="Enter task description"
-                    value={descriptionInput.value}
-                    onChange={descriptionInput.onChange}
+                    {...descriptionInput.bind}
                     className="max-h-64 custom-scrollbar transition-all focus-visible:ring-0 focus-visible:outline-none"
                 />
-                <InputError message={zodError?.description?._errors[0]} keyErr={renderKey} />
+                <InputError message={zodError?.description?._errors[0]} key={renderKey} />
             </div>
 
             <div className="grid gap-3">
                 <div className="flex items-center justify-between gap-3">
                     <div>
                         <Label>Categories</Label>
-                        <InputError message={categoryLengthError.errorMsg} keyErr={renderKey} className="mt-1" />
+                        <InputError message={categoryLengthError} key={renderKey} className="mt-1" />
                     </div>
                     <div className="flex items-center gap-2">
                         {categories.length > 1 && (
@@ -134,7 +131,7 @@ const TaskDetailsForm = forwardRef<TaskDetailsRefType, {}>((_, ref) => {
                                 variant="outline"
                                 onClick={() => {
                                     setCategories([""]);
-                                    categoryLengthError.setErrorMsg(undefined);
+                                    setCategoryLengthError(undefined);
                                 }}
                             >
                                 <Trash className="h-4 w-4" />
@@ -164,12 +161,15 @@ const TaskDetailsForm = forwardRef<TaskDetailsRefType, {}>((_, ref) => {
                                     type="button"
                                     size="icon-xs"
                                     className="absolute -right-2 -top-2 rounded-full bg-primary text-white"
-                                    onClick={() => { handleRemoveCategory(index); categoryLengthError.setErrorMsg(undefined); }}
+                                    onClick={() => {
+                                        handleRemoveCategory(index);
+                                        setCategoryLengthError(undefined);
+                                    }}
                                 >
                                     <X className="h-3 w-3" />
                                 </Button>
                             )}
-                            <InputError keyErr={renderKey} message={zodError?.categories?.[index]?._errors[0]} />
+                            <InputError key={renderKey} message={zodError?.categories?.[index]?._errors[0]} />
                         </div>
                     ))}
                 </div>

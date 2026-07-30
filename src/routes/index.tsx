@@ -21,8 +21,13 @@ export const router = createBrowserRouter([
                     { path: ":id", element: <Task /> },
                 ]
             },
-            { path: "members", element: <Members /> },
-            { path: "profile/:id", element: <Profile /> },
+            {
+                path: "members",
+                children: [
+                    { index: true, element: <Members /> },
+                    { path: ":id", element: <Profile /> }
+                ]
+            },
             { path: "settings", element: <Settings /> },
         ]
     },

@@ -1,19 +1,20 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useQueryParam } from "@/hooks/useQueryParam";
 import type { MemberObject } from "@/types";
 import { Star, FileText, X } from "lucide-react";
 import { useNavigate } from "react-router";
 
 type MemberCardProps = {
     member: MemberObject;
-    setDeleteOpen: (open: boolean) => void;
-    setDeletedId: (id: string) => void;
 }
 
-export function MemberCard({ member, setDeleteOpen, setDeletedId }: MemberCardProps) {
+const MemberCard = ({ member }: MemberCardProps) => {
 
     const navigate = useNavigate();
+
+    const { openItemModal } = useQueryParam();
 
     return (
         <Card className="overflow-hidden group member-card-shape relative border-none bg-white dark:bg-card p-6">
@@ -21,8 +22,7 @@ export function MemberCard({ member, setDeleteOpen, setDeletedId }: MemberCardPr
             <div className="deleteMember opacity-30 group-hover:opacity-100 transition-all bg-primary absolute top-0 left-0 size-6 rounded-br-lg rounded-tl-sm cursor-pointer flex justify-center items-center">
                 <X
                     onClick={() => {
-                        setDeleteOpen(true);
-                        setDeletedId(member.id);
+                        openItemModal(member.id, "delete-member");
                     }}
                     className="size-5 text-white" />
             </div>
@@ -80,3 +80,4 @@ export function MemberCard({ member, setDeleteOpen, setDeletedId }: MemberCardPr
         </Card>
     );
 }
+export default MemberCard;

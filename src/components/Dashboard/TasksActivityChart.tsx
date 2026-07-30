@@ -19,7 +19,7 @@ const chartConfig = {
     },
 } satisfies ChartConfig
 
-export function TasksActivityChart() {
+const TasksActivityChart = () => {
     return (
         <Card className="col-span-2 border-0 shadow-none bg-white dark:bg-card rounded-3xl p-6 xl:px-4 xl:py-4 h-full flex flex-col">
             <CardHeader className="p-0 pb-6 xl:pb-4 xl:px-2">
@@ -72,3 +72,5 @@ export function TasksActivityChart() {
         </Card>
     )
 }
+
+export default TasksActivityChart;

@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { LanguageObject } from "@/types";
 
 interface langLenthErrorProps {
-    setLangLengthError: (errorMsg: string | undefined) => void;
+    setLangLengthError: (errorMsg: string) => void;
 }
 
 const LanguageInputs = ({ setLangLengthError }: langLenthErrorProps) => {

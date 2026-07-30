@@ -4,22 +4,29 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { InputError } from "@/components/custom/InputError";
+import InputError from "@/components/custom/InputError";
 import { Plus, Trash, X } from "lucide-react";
 import { selectMembers } from "@/features/members/membersSlice";
 import { selectAllTasks, editTaskMemberTasks } from "@/features/tasks/tasksSlice";
 import type { MemberObject } from "@/types";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
+import { useParams } from "react-router";
 
-interface AssignMemberTaskModalProps {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-    taskId: string | undefined;
-    memberId: string;
-    resetEditModes: () => void;
-}
-
-const AssignMemberTaskModal = ({ open, setOpen, taskId, memberId, resetEditModes }: AssignMemberTaskModalProps) => {
+const AssignMemberTaskModal = () => {
     const dispatch = useDispatch();
+    const { modalKey, id: memberId, openItemModal, closeItemModal } = useQueryParam() as QueryParam;
+    const routeParams = useParams();
+    const taskId = routeParams.id;
+
+    const open = modalKey === "assign-member-task";
+    const setOpen = (open: boolean) => {
+        if (open && memberId) {
+            openItemModal?.(memberId, "assign-member-task");
+        } else {
+            closeItemModal?.();
+        }
+    };
+
     const members = useSelector(selectMembers);
     const task = useSelector(selectAllTasks).find((task) => task.id === taskId);
     const member = members.find((m: MemberObject) => m.id === memberId);
@@ -30,13 +37,12 @@ const AssignMemberTaskModal = ({ open, setOpen, taskId, memberId, resetEditModes
     const [schemaError, setSchemaError] = useState<string | undefined>(undefined);
 
     useEffect(() => {
-        if (!open) return;
-        resetEditModes();
+        if (!open || !memberId) return;
 
         const memberTasksEntry = {...task?.tasksByUserId};
 
         const existingTasks = memberTasksEntry ? memberTasksEntry[memberId] : [];
-        const normalizedTasks = existingTasks.length > 0 ? existingTasks : [""];
+        const normalizedTasks = existingTasks && existingTasks.length > 0 ? existingTasks : [""];
 
         setTasks(normalizedTasks.slice(0, 6));
         setTaskErrors(normalizedTasks.slice(0, 6).map(() => undefined));
@@ -94,8 +100,10 @@ const AssignMemberTaskModal = ({ open, setOpen, taskId, memberId, resetEditModes
             return;
         }
 
-        dispatch(editTaskMemberTasks({ taskId, memberId, tasks: cleanedTasks }));
-        setOpen(false);
+        if (memberId && taskId) {
+            dispatch(editTaskMemberTasks({ taskId, memberId, tasks: cleanedTasks }));
+        }
+        closeItemModal?.();
     };
 
     return (
@@ -146,7 +154,7 @@ const AssignMemberTaskModal = ({ open, setOpen, taskId, memberId, resetEditModes
                                     </Button>
                                 </div>
                             </div>
-                            <InputError keyErr={errorKey} message={schemaError} />
+                            <InputError key={errorKey} message={schemaError} />
                         </div>
 
                         <div className="grid gap-3 pr-2 max-h-64 overflow-y-auto custom-scrollbar">
@@ -169,13 +177,13 @@ const AssignMemberTaskModal = ({ open, setOpen, taskId, memberId, resetEditModes
                                             </Button>
                                         )}
                                     </div>
-                                    <InputError keyErr={errorKey + index} message={taskErrors[index]} />
+                                    <InputError key={errorKey + index} message={taskErrors[index]} />
                                 </div>
                             ))}
                         </div>
                     </div>
                     <DialogFooter className="mt-4">
-                        <Button onClick={() => setOpen(false)} variant="outline">
+                        <Button onClick={() => closeItemModal?.()} variant="outline">
                             Cancel
                         </Button>
                         <Button onClick={handleSubmit} className="text-white">

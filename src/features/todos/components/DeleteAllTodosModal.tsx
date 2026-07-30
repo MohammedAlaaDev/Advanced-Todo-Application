@@ -9,22 +9,28 @@ import {
 import { Button } from "@/components/ui/button"
 import { useDispatch } from "react-redux";
 import { deleteAllTodos } from "../todosSlice";
+import { useQueryParam } from "@/hooks/useQueryParam";
 
-interface deleteModalProps {
-    open: boolean;
-    onOpenChange?: (open: boolean) => void;
-}
-
-export function DeleteAllTodosModal({ open, onOpenChange }: deleteModalProps) {
+const DeleteAllTodosModal = () => {
     const dispatch = useDispatch();
+
+    const { modalKey, closeModal } = useQueryParam();
+
+    const open = modalKey === "delete-all-todos";
 
     const handleDeleteAll = () => {
         dispatch(deleteAllTodos());
-        onOpenChange?.(false);
+        closeModal();
+    }
+
+    const setOpen = (open: boolean) => {
+        if (!open) {
+            closeModal();
+        }
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>Delete All Todos</DialogTitle>
@@ -33,10 +39,11 @@ export function DeleteAllTodosModal({ open, onOpenChange }: deleteModalProps) {
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange?.(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={closeModal}>Cancel</Button>
                     <Button variant="destructive" onClick={() => handleDeleteAll()}>Delete All</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     )
 }
+export default DeleteAllTodosModal;

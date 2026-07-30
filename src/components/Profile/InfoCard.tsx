@@ -1,4 +1,4 @@
-import type { LanguageObject, LinksError, MemberObject, tempStackError } from '@/types';
+import type { LanguageObject, MemberObject } from '@/types';
 import {
     Github,
     Linkedin,
@@ -16,12 +16,23 @@ import {
     Link,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, type ChangeEvent } from 'react';
+import { useRef, useState, type ChangeEvent, type SubmitEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { tempLinksSchema, tempStackSchema } from '@/features/members/schemas/skillsSocialsSchema';
-import { InputError } from '@/components/custom/InputError';
+import InputError from '@/components/custom/InputError';
 import { useDispatch, useSelector } from 'react-redux';
-import { addLanguageObject, editSkills, fillLanguagesArr, removeLanguageRow, resetTempLangs, selectTempLangs, updateLanguageLevel, updateLanguageText, updateMemberLanguages, updateMemberLinks } from '@/features/members/membersSlice';
+import {
+    addLanguageObject,
+    editSkills,
+    fillLanguagesArr,
+    removeLanguageRow,
+    resetTempLangs,
+    selectTempLangs,
+    updateLanguageLevel,
+    updateLanguageText,
+    updateMemberLanguages,
+    updateMemberLinks
+} from '@/features/members/membersSlice';
 import {
     Select,
     SelectValue,
@@ -31,6 +42,7 @@ import {
     SelectLabel,
     SelectItem,
 } from '@/components/ui/select';
+import { useValidate } from '@/hooks/useValidate';
 
 interface infoCardProps {
     member: MemberObject | undefined;
@@ -43,7 +55,7 @@ interface infoCardProps {
     setLinksEditMode: (mode: boolean) => void;
 }
 
-export const InfoCard = ({
+const InfoCard = ({
     member,
     resetEditModes,
     stackEditMode,
@@ -62,6 +74,9 @@ export const InfoCard = ({
         "portfolio",
         "facebook",
     ]
+
+    const stackValidation = useValidate();
+    const linksValidation = useValidate();
 
     const logos = [
         { key: "github", text: "GitHub", Icon: <Github /> },
@@ -112,15 +127,13 @@ export const InfoCard = ({
     const [localTempStack, setLocalTempStack] = useState<string[]>(skills);
     const tempLangs = useSelector(selectTempLangs);
 
-    const [stackErrorKey, setStackErrorKey] = useState<number>(0);
-    const [stackError, setStackError] = useState<tempStackError | null>(null);
     const [stackLengthError, setStackLengthError] = useState<string | undefined>(undefined);
 
-    const [linksErrorKey, setLinksErrorKey] = useState<number>(0);
-    const [linksError, setLinksError] = useState<LinksError | null>(null);
+    const stackFormRef = useRef<HTMLFormElement>(null);
+    const linksFormRef = useRef<HTMLFormElement>(null);
 
     const resetStackErrors = () => {
-        setStackError(null);
+        stackValidation.setError(null);
         setStackLengthError(undefined);
     }
 
@@ -134,38 +147,49 @@ export const InfoCard = ({
         setLocalTempStack([...localTempStack, ""]);
     }
 
-    const handleUpdateStack = () => {
+    const handleUpdateStack = (e?: SubmitEvent<HTMLFormElement>) => {
+        if (e) e.preventDefault();
+
+
         const data = {
             tempStack: localTempStack,
         }
 
-        const validationResult = tempStackSchema.safeParse(data);
+        stackValidation.validate(data, tempStackSchema, () => {
+            const cleanedData = data.tempStack.filter((skill) => skill.trim() !== "");
 
-        if (!validationResult.success) {
-            const error = validationResult.error.format();
-            if (error) {
-                setStackErrorKey(prev => prev + 1);
-                setStackLengthError(undefined);
-                setStackError(error);
+            if (cleanedData.length === 0) {
+                stackValidation.setShakeKey(prev => prev + 1);
+                setStackLengthError("add at least one skill");
+                return;
             }
-            return;
+
+            setLocalTempStack(cleanedData);
+
+            dispatch(editSkills({ id: member?.id, tempstack: cleanedData }));
+            setStackEditMode(false);
+            resetStackErrors();
+        })
+    }
+
+    const handleUpdateLinks = (e?: SubmitEvent<HTMLFormElement>) => {
+        if (e) e.preventDefault();
+
+
+
+        if (tempLinks) {
+            const currentLinks = [...tempLinks];
+            const data = {
+                tempLinks: currentLinks,
+            }
+
+            linksValidation.validate(data, tempLinksSchema, () => {
+                const cleanedData = currentLinks?.filter((link) => link?.trim() !== "");
+                dispatch(updateMemberLinks({ id: member?.id, links: cleanedData }));
+                setLinksEditMode(false);
+            })
+
         }
-
-        const cleanedData = data.tempStack.filter((skill) => skill.trim() !== "");
-
-        if (cleanedData.length === 0) {
-            setStackError(null);
-            setStackErrorKey(prev => prev + 1);
-            setStackLengthError("add at least one skill");
-            return;
-        }
-
-        setLocalTempStack(cleanedData);
-
-        dispatch(editSkills({ id: member?.id, tempstack: cleanedData }));
-        setStackEditMode(false);
-        resetStackErrors();
-
     }
 
     const handleLangChange = (obj: { prevLanguage: string, language: string, level: string, id: string }) => {
@@ -194,34 +218,7 @@ export const InfoCard = ({
         const cleanedData = { langs: cleanedLangs, id };
         if (id) {
             dispatch(updateMemberLanguages(cleanedData));
-        }
-    }
-
-
-    const handleUpdateLinks = () => {
-        if (tempLinks) {
-            const currentLinks = [...tempLinks];
-            const data = {
-                tempLinks: currentLinks,
-            }
-
-            if (data) {
-
-                const validationResult = tempLinksSchema.safeParse(data);
-                if (!validationResult.success) {
-                    const error: LinksError = validationResult.error.format();
-                    if (error) {
-                        setLinksErrorKey(p => p + 1);
-                        setLinksError(error);
-                    }
-                    return;
-                }
-
-            }
-
-            const cleanedData = currentLinks?.filter((link) => link?.trim() !== "");
-            dispatch(updateMemberLinks({ id: member?.id, links: cleanedData }));
-            setLinksEditMode(false);
+            setLangsEditMode(false);
         }
     }
 
@@ -241,8 +238,41 @@ export const InfoCard = ({
         }
     }
 
+    const openStackInputs = () => {
+
+        setTimeout(() => {
+            const firstInput = stackFormRef.current?.querySelector("input");
+            firstInput?.focus();
+        }, 0);
+
+        resetEditModes();
+        stackValidation.setError(null);
+        setLocalTempStack(skills);
+        setStackLengthError(undefined);
+        setStackEditMode(true);
+    }
+
+    const openLangsInputs = () => {
+        resetEditModes();
+        dispatch(fillLanguagesArr(languages));
+        setLangsEditMode(true);
+    }
+
+    const openLinksInputs = () => {
+
+        setTimeout(() => {
+            const firstInput = linksFormRef.current?.querySelector("input");
+            firstInput?.focus();
+        }, 0);
+
+        resetEditModes();
+        setTempLinks(memberLinks);
+        linksValidation.setError(null);
+        setLinksEditMode(true);
+    }
+
     return (
-        <aside className="w-full bg-white dark:bg-card rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 md:p-8 lg:p-4 top-24">
+        <aside className="w-full bg-white dark:bg-card rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 p-4 md:p-8 lg:p-4">
 
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{member?.personalDetails?.name}</h2>
 
@@ -252,15 +282,13 @@ export const InfoCard = ({
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex gap-2 flex-col">
                         <h3 className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase">Tech Stack</h3>
-                        <InputError className='text-xs!' keyErr={stackErrorKey} message={stackLengthError} />
+                        <InputError className='text-xs!' key={stackValidation.shakeKey} message={stackLengthError} />
                     </div>
                     {
                         stackEditMode ?
                             <div className="flex gap-2">
                                 <Button className="size-6" onClick={() => {
                                     setStackEditMode(false);
-                                    setStackLengthError(undefined);
-                                    setLocalTempStack(skills);
                                 }}>
                                     <X className="text-white" />
                                 </Button>
@@ -272,9 +300,7 @@ export const InfoCard = ({
                             </div>
                             :
                             <Button className="size-6" onClick={() => {
-                                resetEditModes();
-                                setStackError(null);
-                                setStackEditMode(true);
+                                openStackInputs();
                             }}>
                                 <PenLine className="text-white" />
                             </Button>
@@ -282,13 +308,20 @@ export const InfoCard = ({
                 </div>
                 {
                     stackEditMode ?
-                        <div className="grid max-[350px]:grid-cols-1 grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2">
+                        <form
+                            ref={stackFormRef}
+                            onSubmit={(e) => {
+                                handleUpdateStack(e);
+                            }}
+                            className="grid max-[350px]:grid-cols-1 grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2">
+                            <Button type="submit" className="hidden">
+                            </Button>
                             {localTempStack.map((skill, idx) => (
                                 <div key={idx} className="flex flex-col items-start">
                                     <div className="relative w-full">
                                         <Input
                                             id={`skill-${idx}`}
-                                            className="h-6 px-3 py-1 bg-primary/20 dark:bg-primary/20 text-primary dark:text-primary text-xs font-medium rounded-full border border-primary/20 dark:border-primary/20 hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors"
+                                            className="stackInput h-6 pl-2 pr-8 py-1 bg-primary/20 dark:bg-primary/20 text-primary dark:text-primary text-xs font-medium rounded-full border border-primary/20 dark:border-primary/20 hover:bg-primary/10 dark:hover:bg-primary/10 transition-colors"
                                             value={skill}
                                             onChange={(e) => {
                                                 handleStackChange(e, idx);
@@ -307,7 +340,7 @@ export const InfoCard = ({
                                             </Button>
                                         }
                                     </div>
-                                    <InputError className='text-xs!' keyErr={stackErrorKey} message={stackError?.tempStack?.[idx]?._errors[0]} />
+                                    <InputError className='text-xs!' key={stackValidation.shakeKey} message={stackValidation.error?.tempStack?.[idx]?._errors[0]} />
                                 </div>
                             ))}
                             {
@@ -318,7 +351,7 @@ export const InfoCard = ({
                                     <Plus className="text-primary size-3" />
                                 </Button>
                             }
-                        </div>
+                        </form>
                         :
                         <div className="flex flex-wrap gap-2">
                             {skills.map((skill, idx) => (
@@ -353,16 +386,13 @@ export const InfoCard = ({
                                         langs: tempLangs,
                                     }
                                     handleUpdatelangs(data);
-                                    setLangsEditMode(false);
                                 }}>
                                     <Check className="text-white" />
                                 </Button>
                             </div>
                             :
                             <Button className="size-6" onClick={() => {
-                                resetEditModes();
-                                setLangsEditMode(true);
-                                dispatch(fillLanguagesArr(languages));
+                                openLangsInputs();
                             }}>
                                 <PenLine className="text-white" />
                             </Button>
@@ -374,14 +404,14 @@ export const InfoCard = ({
                         langsEditMode ?
                             <>
                                 {
-                                    tempLangs.map((lang, idx) => {
+                                    tempLangs.map((lang) => {
                                         const isFullRow = lang.lang && lang.level;
                                         return (
                                             <div
                                                 key={lang.id}
                                                 className='relative grid grid-cols-2 gap-2 bg-primary/10 rounded-sm border-dotted border-2 border-primary/50 p-2'>
                                                 {
-                                                    idx !== 0 && isFullRow &&
+                                                    tempLangs.length > 2 && isFullRow &&
                                                     <Button
                                                         onClick={() => {
                                                             dispatch(removeLanguageRow(lang.id));
@@ -469,7 +499,6 @@ export const InfoCard = ({
             <div className="pt-6">
                 <div className='flex justify-between items-center mb-4'>
                     <h3 className="text-sm font-semibold text-gray-400 dark:text-gray-500 uppercase">Social Media</h3>
-
                     {
                         linksEditMode ?
                             <div className="flex gap-2">
@@ -487,10 +516,7 @@ export const InfoCard = ({
                             </div>
                             :
                             <Button className="size-6" onClick={() => {
-                                resetEditModes();
-                                setTempLinks(memberLinks);
-                                setLinksError(null);
-                                setLinksEditMode(true);
+                                openLinksInputs();
                             }}>
                                 <PenLine className="text-white" />
                             </Button>
@@ -500,7 +526,9 @@ export const InfoCard = ({
                 {
                     linksEditMode ?
                         <>
-                            <div className='flex flex-col gap-2'>
+                            <form ref={linksFormRef} className='flex flex-col gap-2' onSubmit={(e) => handleUpdateLinks(e)}>
+                                <Button type='submit' className='hidden'>
+                                </Button>
                                 {
                                     tempLinks?.map((link, idx) => (
                                         <div key={idx}>
@@ -508,7 +536,8 @@ export const InfoCard = ({
                                                 <Link className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                                 <Input
                                                     name={`tempLink-${idx}`}
-                                                    placeholder={`eg. https://www.${placeholdersLinksArr[idx]}.com`} className="pl-10"
+                                                    placeholder={`eg. https://www.${placeholdersLinksArr[idx]}.com`}
+                                                    className="pl-10 linkInput"
                                                     value={link}
                                                     onChange={(e) => {
                                                         handleLinkChange(idx, e);
@@ -519,17 +548,18 @@ export const InfoCard = ({
                                                     <Button
                                                         onClick={() => {
                                                             handleRemoveTempLink(idx);
+                                                            linksValidation.setError(null);
                                                         }}
                                                         className='absolute rounded-full size-5 bg-red-500 hover:bg-red-600 top-0 right-0 translate-x-1/2 -translate-y-1/2'>
                                                         <X className='size-4 text-white' />
                                                     </Button>
                                                 }
                                             </div>
-                                            <InputError keyErr={linksErrorKey} message={linksError?.tempLinks?.[idx]?._errors[0]} />
+                                            <InputError key={linksValidation.shakeKey} message={linksValidation.error?.tempLinks?.[idx]?._errors[0]} />
                                         </div>
                                     ))
                                 }
-                            </div>
+                            </form>
                             {
                                 tempLinks && tempLinks?.length < 4 &&
                                 <Button
@@ -537,6 +567,7 @@ export const InfoCard = ({
                                         setTempLinks((p) => {
                                             return [...(p || []), ""];
                                         })
+                                        linksValidation.setError(null);
                                     }}
                                     className='bg-primary/20 p-3 hover:bg-primary/40 border-dotted border-2 border-primary w-full mt-2'>
                                     <Plus className='size-4 text-primary' />
@@ -569,3 +600,5 @@ export const InfoCard = ({
         </aside >
     );
 };
+
+export default InfoCard;

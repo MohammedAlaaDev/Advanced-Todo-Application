@@ -9,17 +9,26 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { deleteMemberProject } from "@/features/members/membersSlice";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import { useDispatch } from "react-redux";
+import { useParams } from "react-router";
 
-interface DeleteProjectsModalProps {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-    memberId: string;
-    projectIdx: number
-}
-
-const DeleteOneProjectModal = ({ open, setOpen, memberId, projectIdx }: DeleteProjectsModalProps) => {
+const DeleteOneProjectModal = () => {
     const dispatch = useDispatch();
+
+    const { modalKey, id: itemId, openItemModal, closeItemModal } = useQueryParam() as QueryParam;
+
+    const memberId = useParams().id;
+
+    const open = modalKey === "delete-project";
+    const setOpen = (open: boolean) => {
+        if (open && itemId) {
+            openItemModal?.(itemId, "delete-project");
+        } else {
+            closeItemModal?.();
+        }
+    }
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-sm">
@@ -35,8 +44,8 @@ const DeleteOneProjectModal = ({ open, setOpen, memberId, projectIdx }: DeletePr
                     </DialogClose>
                     <Button
                         onClick={() => {
-                            dispatch(deleteMemberProject({ memberId, projectIdx }));
-                            setOpen(false);
+                            dispatch(deleteMemberProject({ memberId, projectId: itemId }));
+                            closeItemModal?.();
                         }}
                     >Delete</Button>
                 </DialogFooter>

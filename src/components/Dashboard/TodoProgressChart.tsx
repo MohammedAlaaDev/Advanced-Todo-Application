@@ -31,7 +31,7 @@ const chartConfig = {
     },
 } satisfies ChartConfig
 
-export function TodoProgressChart() {
+const TodoProgressChart = () => {
     const currentDate = format(new Date().toISOString(), "eeee - d MMMM yyyy");
 
     const todosCount = useSelector(selectTodos).length;
@@ -103,3 +103,5 @@ export function TodoProgressChart() {
         </Card >
     )
 }
+
+export default TodoProgressChart;

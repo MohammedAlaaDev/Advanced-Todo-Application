@@ -9,20 +9,33 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { deleteMember } from "@/features/members/membersSlice";
-import type { ModalProps } from "@/types"
+import { useQueryParam } from "@/hooks/useQueryParam";
 import { useDispatch } from "react-redux";
 
-interface DeleteMemberModalProps extends ModalProps {
-    deletedId?: string;
-    setDeletedId: (id: string) => void;
-}
+function DeleteMemberModal() {
 
-function DeleteMemberModal({ open, onOpenChange, deletedId, setDeletedId }: DeleteMemberModalProps) {
+    const { modalKey, id, openItemModal, closeItemModal } = useQueryParam();
+
+    const open = modalKey === "delete-member";
+    const setOpen = (open: boolean) => {
+        if (open) {
+            openItemModal(id, "delete-member");
+        } else {
+            closeItemModal();
+        }
+    }
 
     const dispatch = useDispatch();
 
+    const handleSubmit = () => {
+        if (id) {
+            dispatch(deleteMember(id));
+        }
+        closeItemModal();
+    }
+
     return (
-        <Dialog onOpenChange={onOpenChange} open={open}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <form>
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
@@ -37,13 +50,7 @@ function DeleteMemberModal({ open, onOpenChange, deletedId, setDeletedId }: Dele
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
                         <Button
-                            onClick={() => {
-                                if (deletedId) {
-                                    dispatch(deleteMember(deletedId));
-                                }
-                                onOpenChange?.(false);
-                                setDeletedId("");
-                            }}
+                            onClick={handleSubmit}
                             className="text-white">Delete Permanently</Button>
                     </DialogFooter>
                 </DialogContent>

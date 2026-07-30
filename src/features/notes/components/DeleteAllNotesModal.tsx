@@ -9,20 +9,30 @@ import {
 import { Button } from "@/components/ui/button"
 import { useDispatch } from "react-redux";
 import { deleteAllNotes } from "@/features/notes/notesSlice";
-import type { ModalProps } from "@/types";
+import { useQueryParam } from "@/hooks/useQueryParam";
 
+const DeleteAllNotesModal = () => {
 
+    const { modalKey, openModal, closeModal } = useQueryParam();
 
-export function DeleteAllNotesModal({ open, onOpenChange }: ModalProps) {
+    const open = modalKey === "delete-notes";
+    const setOpen = (open: boolean) => {
+        if (open) {
+            openModal("delete-notes");
+        } else {
+            closeModal();
+        }
+    }
+
     const dispatch = useDispatch();
 
     const handleDeleteAll = () => {
         dispatch(deleteAllNotes());
-        onOpenChange?.(false);
+        setOpen(false);
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>Delete All Notes</DialogTitle>
@@ -31,10 +41,11 @@ export function DeleteAllNotesModal({ open, onOpenChange }: ModalProps) {
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange?.(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
                     <Button variant="destructive" onClick={() => handleDeleteAll()}>Delete All</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     )
 }
+export default DeleteAllNotesModal;

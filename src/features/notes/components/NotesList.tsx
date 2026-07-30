@@ -1,10 +1,9 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { Ellipsis, PencilIcon, TrashIcon } from 'lucide-react'
+import { PencilIcon, TrashIcon } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { selectNotes } from '@/features/notes/notesSlice'
 import type { noteObject } from '@/types'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 import sadNote from "@/assets/images/sadNote.png"
 import sadNoteGreen from "@/assets/images/sadNoteGreen.png"
@@ -15,19 +14,18 @@ import sadNoteCyan from "@/assets/images/sadNoteCyan.png"
 
 import NoData from '@/components/custom/NoData'
 import { useThemeContext } from '@/contexts/theme/ThemeProvider'
+import { useQueryParam } from '@/hooks/useQueryParam'
+import Dropdown, { type Option } from '@/components/custom/Dropdown'
 
-type notesProps = {
-    setAddNoteOpen: (open: boolean) => void,
-    setDeleteNoteOpen: (open: boolean) => void,
-    setEditNoteOpen: (open: boolean) => void,
-    setEditedNote: (editedNote: noteObject) => void,
-    setDeletedID: (id: string | undefined) => void,
-}
+const NotesList = () => {
 
-const NotesList = ({ setAddNoteOpen, setEditNoteOpen, setEditedNote, setDeleteNoteOpen, setDeletedID }: notesProps) => {
-    const notes = useSelector(selectNotes);
+    const notes = [...useSelector(selectNotes)].reverse();
+
+    const { openModal } = useQueryParam();
 
     const { theme } = useThemeContext();
+
+    const { openItemModal } = useQueryParam();
 
     const badgeColors = [
         { bg: "bg-pink-100 dark:bg-pink-900", text: "text-pink-700 dark:text-pink-300", hover: "hover:bg-pink-200 dark:hover:bg-pink-800" },
@@ -38,10 +36,29 @@ const NotesList = ({ setAddNoteOpen, setEditNoteOpen, setEditedNote, setDeleteNo
         { bg: "bg-cyan-100 dark:bg-cyan-900", text: "text-cyan-700 dark:text-cyan-300", hover: "hover:bg-cyan-200 dark:hover:bg-cyan-800" },
     ];
 
-    const optionsArr = [
-        { action: "edit", text: "Edit", icon: <PencilIcon /> },
-        { action: "delete", text: "Delete", icon: <TrashIcon /> }
+    const options: Option[] = [
+        {
+            key: "edit",
+            text: "Edit",
+            icon: <PencilIcon />
+        },
+        {
+            key: "delete",
+            text: "Delete",
+            icon: <TrashIcon />
+        }
     ]
+
+    const handleAction = (key: string, id: string) => {
+        if (key === "edit") {
+            openItemModal(id, "note");
+        }
+
+        if (key === "delete") {
+            openItemModal(id, "delete-note");
+        }
+
+    }
 
     const noDataSrc = {
         first: sadNote,
@@ -62,31 +79,9 @@ const NotesList = ({ setAddNoteOpen, setEditNoteOpen, setEditedNote, setDeleteNo
                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                                     {`${note.edited ? "Edited" : "Created"}` + ` at ${note.createdAt}`}
                                 </span>
-                                <DropdownMenu >
-                                    <DropdownMenuTrigger className="border-0 outline-0">
-                                        <Ellipsis className="cursor-pointer" />
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="bg-white dark:bg-card mr-9">
-                                        <DropdownMenuGroup>
-                                            {
-                                                optionsArr.map((option, idx) => (
-                                                    <DropdownMenuItem onClick={() => {
-                                                        if (option.action === "edit") {
-                                                            setEditNoteOpen(true);
-                                                            setEditedNote(note);
-                                                        } else {
-                                                            setDeleteNoteOpen(true);
-                                                            setDeletedID(note.id);
-                                                        }
-                                                    }} key={idx} className="cursor-pointer">
-                                                        {option.icon}
-                                                        {option.text}
-                                                    </DropdownMenuItem>
-                                                ))
-                                            }
-                                        </DropdownMenuGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                <Dropdown options={options} handleChoose={(key: string) => {
+                                    handleAction(key, note.id);
+                                }} />
                             </div>
                             <h4 className="font-bold text-sm text-slate-800 dark:text-slate-200 mb-1">{note.title}</h4>
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
@@ -108,12 +103,16 @@ const NotesList = ({ setAddNoteOpen, setEditNoteOpen, setEditedNote, setDeleteNo
                         </Card>
                     ))
                     :
-                    <NoData
-                        src={noDataSrc[theme]}
-                        message="No Notes? put your thoughts."
-                        image={true}
-                        setAddOpen={setAddNoteOpen}
-                    />
+                    <div onClick={() => {
+                        openModal("note");
+                    }}>
+
+                        <NoData
+                            src={noDataSrc[theme]}
+                            message="No Notes? put your thoughts."
+                            image={true}
+                        />
+                    </div>
             }
         </>
     )

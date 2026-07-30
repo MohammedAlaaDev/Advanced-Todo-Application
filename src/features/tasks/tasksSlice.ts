@@ -1,6 +1,6 @@
 import type { RootState } from "@/app/store";
 import type { taskDetailsObject, tasksState } from "@/types";
-import { createSlice, current, nanoid, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: tasksState = {
     tasks: [],

@@ -9,7 +9,7 @@ type Props = {
     query: string;
 }
 
-export default function TasksSearchDropdown({ tasks, query }: Props) {
+const TasksSearchDropdown = ({ tasks, query }: Props) => {
     const navigate = useNavigate();
 
     return (
@@ -56,3 +56,5 @@ export default function TasksSearchDropdown({ tasks, query }: Props) {
         </div>
     );
 }
+
+export default TasksSearchDropdown;

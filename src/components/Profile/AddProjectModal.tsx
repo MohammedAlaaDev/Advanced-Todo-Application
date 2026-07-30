@@ -3,70 +3,120 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Code2, Globe, Plus, Trash, X } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { useError } from "@/hooks/useError"
 import { projectContributionSchema } from "@/features/members/schemas/projectContributionSchema"
 import { nanoid } from "@reduxjs/toolkit"
-import type { projectContributionError } from "@/types"
+import type { MemberProject, projectContributionError } from "@/types"
 import { addMemberProject } from "@/features/members/membersSlice"
 import { useDispatch } from "react-redux"
-import { InputError } from "../custom/InputError"
+import InputError from "@/components/custom/InputError"
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam"
+import { useParams } from "react-router"
+import { useValidate } from "@/hooks/useValidate"
 
-interface AddProjectsModalProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  memberId: string;
-  resetEditModes: () => void;
+interface ValidationType {
+  validate: (data: MemberProject, schema: typeof projectContributionSchema, onSuccess: () => void) => void;
+  setError: Dispatch<SetStateAction<projectContributionError | null>>;
+  error: projectContributionError | null;
+  shakeKey: number;
 }
 
-const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProjectsModalProps) => {
+const AddProjectModal = () => {
 
   const dispatch = useDispatch();
+
+  const { id } = useParams();
+
+  const { modalKey, closeModal, openModal } = useQueryParam() as QueryParam;
+
+  const { validate, setError, error, shakeKey } = useValidate() as ValidationType;
+
+  const open = modalKey === "add-project";
+  const setOpen = (open: boolean) => {
+    if (open) {
+      openModal?.("add-project");
+    } else {
+      closeModal?.();
+    }
+  }
 
   const titleRef = useRef<HTMLInputElement | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const [tempCategory, setTempCategory] = useState<string[]>([""]);
   const sourceCodeRef = useRef<HTMLInputElement | null>(null);
   const liveLinkRef = useRef<HTMLInputElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
-  const [errorKey, setErrorKey] = useState<number>(0);
-
-  const [zodError, setZodError] = useState<projectContributionError | null>(null);
+  const titleError = error?.title?._errors[0];
+  const descriptionError = error?.description?._errors[0];
+  const sourceCodeError = error?.sourceCode?._errors[0];
+  const liveCodeError = error?.liveCode?._errors[0];
+  const categoryError = error?.category;
 
   useEffect(() => {
-    if (zodError) {
-      setZodError(null);
+    setTempCategory([""]);
+    if (error) {
+      setError(null);
     }
 
-    if (open) {
-      resetEditModes();
+    if (categoryLengthError) {
+      setCategoryLengthError(undefined);
     }
-
   }, [open])
 
-  const categoryLengthError = useError(undefined);
+  useEffect(() => {
+    const errorElement = formRef.current?.querySelector(".input-error");
+    if (errorElement) {
+      errorElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+    }
+  }, [shakeKey])
+
+  const [categoryLengthError, setCategoryLengthError] = useState<string | undefined>(undefined);
 
   const handleRemoveAllCategories = () => {
     setTempCategory([""]);
   }
 
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleAddCategoryRow = () => {
     if (tempCategory.length >= 6) {
-      categoryLengthError.setErrorMsg("Max 6 categories.");
+      if (!categoryLengthError) {
+        setCategoryLengthError("Max 6 categories.");
+      }
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        setCategoryLengthError(undefined);
+      }, 2000);
       return;
     }
-    categoryLengthError.setErrorMsg(undefined);
     setTempCategory((prev) => [...prev, ""]);
   };
 
   const handleRemoveCategoryRow = (idxToRemove: number) => {
     if (tempCategory.length <= 1) return;
     setTempCategory((prev) => prev.filter((_, idx) => idx !== idxToRemove));
-    categoryLengthError.setErrorMsg(undefined);
   };
 
   const handleCategoryChange = (idxToUpdate: number, value: string) => {
+
+    if (error?.category) {
+      setError((prev: projectContributionError | null) => {
+        if (!prev) return prev;
+
+        const updated = { ...prev, category: { _errors: [] } };
+        return updated;
+      });
+    }
+
     setTempCategory((prev) => {
       const updated = [...prev];
       updated[idxToUpdate] = value;
@@ -74,7 +124,9 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
     });
   };
 
-  const handleAddProject = () => {
+  const handleAddProject = (e?: React.SubmitEvent<HTMLFormElement>) => {
+    if (e) e.preventDefault();
+
     const data = {
       id: nanoid(),
       title: titleRef.current?.value.trim() || "",
@@ -84,20 +136,13 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
       category: tempCategory || [""],
     };
 
-    const validationResult = projectContributionSchema.safeParse(data);
+    validate(data, projectContributionSchema, () => {
+      data.category = data.category.filter((c) => c.trim() !== "");
 
-    if (!validationResult.success) {
-      const error = validationResult.error.format();
-      if (error) {
-        setErrorKey((prev) => prev + 1);
-        setZodError(error);
-      }
-      return;
-    }
-
-    dispatch(addMemberProject({ memberId, project: data }));
-    setOpen(false);
-    setTempCategory([""]);
+      dispatch(addMemberProject({ memberId: id, project: data }));
+      setOpen(false);
+      setTempCategory([""]);
+    })
   };
 
   return (
@@ -106,10 +151,10 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
         className="w-full max-w-75 md:max-w-xl lg:max-w-2xl shadow-2xl max-h-148 p-2 md:p-6"
       >
         <form
+          ref={formRef}
           className="flex flex-col justify-center gap-5"
           onSubmit={(e) => {
-            e.preventDefault();
-            handleAddProject();
+            handleAddProject(e);
           }}>
           <DialogHeader>
             <DialogTitle className="text-2xl">
@@ -124,7 +169,7 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
                 <Input
                   id="title" placeholder="eg. Portfolio Website" ref={titleRef}
                 />
-                <InputError keyErr={errorKey} message={zodError?.title?._errors[0]} />
+                <InputError key={shakeKey} message={titleError} />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="desc">Project Description (Optional)</Label>
@@ -133,13 +178,13 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
                   className=" min-h-20 max-h-20"
                   ref={descriptionRef}
                 />
-                <InputError keyErr={errorKey} message={zodError?.description?._errors[0]} />
+                <InputError key={shakeKey} message={descriptionError} />
               </div>
               <div className="grid gap-1.5">
                 <div className="flex justify-between items-center">
                   <div>
                     <Label>Project Category (Optional)</Label>
-                    <InputError keyErr={errorKey} message={categoryLengthError.errorMsg} />
+                    <InputError key={shakeKey} message={categoryLengthError} className="text-red-700! dark:text-red-100!" />
                   </div>
                   <div className="flex justify-center gap-2 items-center">
                     {
@@ -187,7 +232,7 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
                             <X className="h-2 w-2 text-white" />
                           </Button>
                         }
-                        {/* <InputError keyErr={ } message={ } /> */}
+                        <InputError key={shakeKey} message={categoryError?.[catIdx]?._errors[0]} />
                       </div>
                     ))
                   }
@@ -205,7 +250,7 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
                     ref={sourceCodeRef}
                   />
 
-                  <InputError keyErr={errorKey} message={zodError?.sourceCode?._errors[0]} />
+                  <InputError key={shakeKey} message={sourceCodeError} />
 
                 </div>
               </div>
@@ -219,7 +264,7 @@ const AddProjectModal = ({ open, setOpen, memberId, resetEditModes }: AddProject
                     className="pl-10 "
                     ref={liveLinkRef}
                   />
-                  <InputError keyErr={errorKey} message={zodError?.liveCode?._errors[0]} />
+                  <InputError key={shakeKey} message={liveCodeError} />
                 </div>
               </div>
             </div>

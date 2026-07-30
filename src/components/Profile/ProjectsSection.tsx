@@ -10,34 +10,30 @@ import astroFourth from "@/assets/noProjects/fourth.webp";
 import astroFifth from "@/assets/noProjects/fifth.webp";
 import astroSixth from "@/assets/noProjects/sixth.webp";
 import { useThemeContext } from '@/contexts/theme/ThemeProvider';
+import { useQueryParam, type QueryParam } from '@/hooks/useQueryParam';
+import { type Dispatch, type SetStateAction } from 'react';
 
 interface ProjectProps {
     member: MemberObject | undefined;
     resetEditModes: () => void;
     projectsEditMode: boolean;
-    setProjectsEditMode: (mode: boolean) => void;
-    deleteProjectsModalOpen: boolean;
-    setDeleteProjectsModalOpen: (open: boolean) => void;
-    addProjectModalOpen: boolean;
-    setAddProjectModalOpen: (open: boolean) => void;
-    deleteOneProjectModal: boolean;
-    setDeleteOneProjectModal: (open: boolean) => void;
-    setDeleteingProjectIdx: (idx: number) => void;
+    setProjectsEditMode: Dispatch<SetStateAction<boolean>>;
+    currentEditingId: string | null;
+    setCurrentEditingId: Dispatch<SetStateAction<string | null>>;
 }
 
-export const ProjectsSection = ({
+const ProjectsSection = ({
     member,
     resetEditModes,
     projectsEditMode,
     setProjectsEditMode,
-    setDeleteProjectsModalOpen,
-    setAddProjectModalOpen,
-    deleteOneProjectModal,
-    setDeleteOneProjectModal,
-    setDeleteingProjectIdx,
+    currentEditingId,
+    setCurrentEditingId
 }: ProjectProps) => {
 
     const projects: MemberProject[] = member ? [...member.projects] : [];
+
+    const { openModal } = useQueryParam() as QueryParam;
 
     const reversedProjects: MemberProject[] = [...projects].reverse();
 
@@ -66,16 +62,21 @@ export const ProjectsSection = ({
                                     ""
                                     :
                                     <Button
+                                        className='text-white'
                                         onClick={() => {
-                                            setDeleteProjectsModalOpen(true);
+                                            resetEditModes();
+                                            openModal?.("delete-projects");
                                         }}
                                     >
                                         <Trash />
                                     </Button>
                             }
-                            <Button onClick={() => {
-                                setAddProjectModalOpen(true);
-                            }}>
+                            <Button
+                                className='text-white'
+                                onClick={() => {
+                                    resetEditModes();
+                                    openModal?.("add-project");
+                                }}>
                                 <Plus />
                             </Button>
                         </div>
@@ -87,7 +88,8 @@ export const ProjectsSection = ({
                 projects.length === 0 ?
                     <div
                         onClick={() => {
-                            setAddProjectModalOpen(true);
+                            resetEditModes();
+                            openModal?.("add-project");
                         }}
                         className="w-full cursor-pointer flex flex-col items-center justify-center gap-5 rounded-2xl border-2 border-dotted border-primary bg-primary/10 backdrop-blur-sm p-6 text-center shadow-[0_0_15px_rgba(var(--primary),0.3)] dark:shadow-[0_0_25px_rgba(var(--primary),0.2)] transition-all duration-300">
                         <img className='size-40' src={imgRender[theme.theme]} />
@@ -101,21 +103,20 @@ export const ProjectsSection = ({
                     :
                     <div className="space-y-6">
                         {member && reversedProjects.map((project) => (
-                            <div key={project.id}>
-                                <MemberProjectCard
-                                    setDeleteingProjectIdx={setDeleteingProjectIdx}
-                                    member={member}
-                                    project={project}
-                                    projectsEditMode={projectsEditMode}
-                                    resetEditModes={resetEditModes}
-                                    setProjectsEditMode={setProjectsEditMode}
-                                    deleteOneProjectModal={deleteOneProjectModal}
-                                    setDeleteOneProjectModal={setDeleteOneProjectModal}
-                                />
-                            </div>
+                            <MemberProjectCard
+                                key={project.id}
+                                member={member}
+                                project={project}
+                                resetEditModes={resetEditModes}
+                                setProjectsEditMode={setProjectsEditMode}
+                                currentEditingId={currentEditingId}
+                                setCurrentEditingId={setCurrentEditingId}
+                            />
                         ))}
                     </div>
             }
         </section>
     );
 };
+
+export default ProjectsSection;

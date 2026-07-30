@@ -1,53 +1,52 @@
-import type { MemberObject, MemberProject, projectContributionError } from "@/types";
+import type { MemberObject, MemberProject } from "@/types";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useRef, useState, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent, type Dispatch, type SetStateAction, type SubmitEvent } from "react";
 import { Edit, ExternalLink, Github, Plus, Trash, X } from "lucide-react";
-import { InputError } from "../custom/InputError";
+import InputError from "@/components/custom/InputError";
 import { projectContributionSchema } from "@/features/members/schemas/projectContributionSchema";
 import { useDispatch } from "react-redux";
 import { editMemberProject } from "@/features/members/membersSlice";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
+import { useValidate } from "@/hooks/useValidate";
 
 interface MemberProjectCardProps {
     member: MemberObject;
     project: MemberProject;
-    projectsEditMode: boolean;
-    setProjectsEditMode: (mode: boolean) => void;
+    currentEditingId: string | null;
     resetEditModes: () => void;
-    deleteOneProjectModal: boolean;
-    setDeleteOneProjectModal: (open: boolean) => void;
-    setDeleteingProjectIdx: (idx: number) => void;
+    setCurrentEditingId: Dispatch<SetStateAction<string | null>>;
+    setProjectsEditMode: Dispatch<SetStateAction<boolean>>;
 }
 
 const MemberProjectCard = ({
     member,
     project,
-    projectsEditMode,
+    currentEditingId,
     resetEditModes,
+    setCurrentEditingId,
     setProjectsEditMode,
-    setDeleteOneProjectModal,
-    setDeleteingProjectIdx,
 }: MemberProjectCardProps) => {
 
     const dispatch = useDispatch();
 
+    const { openItemModal } = useQueryParam() as QueryParam;
+
+    const { validate, setError, error, shakeKey } = useValidate();
+
     const projectTitleRef = useRef<HTMLInputElement | null>(null);
     const projectDetailsRef = useRef<HTMLTextAreaElement | null>(null);
-    const [tempProjectCategories, setTempProjectCategories] = useState<(string | undefined)[]>(project.category);
+    const [tempProjectCategories, setTempProjectCategories] = useState<(string | undefined)[]>(project.category.length === 0 ? [""] : project.category);
     const sourceCodeRef = useRef<HTMLInputElement | null>(null);
     const liveCodeRef = useRef<HTMLInputElement | null>(null);
 
-    const [zodError, setZodError] = useState<projectContributionError | null>(null);
-
-    const titleError = zodError?.title?._errors[0];
-    const descriptionError = zodError?.description?._errors[0];
-    const categoriesError = zodError?.category;
-    const sourceCodeError = zodError?.sourceCode?._errors[0];
-    const liveCodeError = zodError?.liveCode?._errors[0];
-
-    const [errorKey, setErrorKey] = useState<number>(0);
+    const titleError = error?.title?._errors[0];
+    const descriptionError = error?.description?._errors[0];
+    const categoriesError = error?.category;
+    const sourceCodeError = error?.sourceCode?._errors[0];
+    const liveCodeError = error?.liveCode?._errors[0];
 
     const handleAddTempCategory = () => {
         const newTempCategory = [...tempProjectCategories, ""];
@@ -67,7 +66,8 @@ const MemberProjectCard = ({
         setTempProjectCategories(newTempCategory);
     }
 
-    const handleProjectSave = () => {
+    const handleProjectSave = (e?: SubmitEvent<HTMLFormElement>) => {
+        if (e) e.preventDefault();
 
         const data = {
             id: project.id,
@@ -78,34 +78,45 @@ const MemberProjectCard = ({
             liveCode: liveCodeRef.current?.value,
         }
 
-        const validationResult = projectContributionSchema.safeParse(data);
-        if (!validationResult.success) {
-            const error: projectContributionError | null = validationResult.error.format();
-            if (error) {
-                setErrorKey(p => p + 1);
-                setZodError(error);
-            }
-            return;
-        }
+        validate(data, projectContributionSchema, () => {
+            const cleanedCategory = [...data.category].filter((text) => {
+                return text?.trim() !== "";
+            })
 
-        const cleanedCategory = [...data.category].filter((text) => {
-            return text?.trim() !== "";
+            data.category = cleanedCategory;
+
+            dispatch(editMemberProject({ data, memberId: member.id }));
+            setTempProjectCategories(data.category.length === 0 ? [""] : data.category);
+            setProjectsEditMode(false);
+            setCurrentEditingId(null);
         })
+    }
 
-        data.category = cleanedCategory;
+    const currentProjectEditMode = project.id === currentEditingId
 
-        setTempProjectCategories(data.category);
-        dispatch(editMemberProject({ data, memberId: member.id }));
-        setProjectsEditMode(false);
+    const openProjectInputs = () => {
 
+        setTimeout(() => {
+            projectTitleRef.current?.focus();
+        }, 0);
 
+        resetEditModes();
+        setProjectsEditMode(true);
+        setError(null);
+        setCurrentEditingId(project.id);
     }
 
     return (
-        <div className="group p-4 md:p-6 rounded-xl border border-gray-100 dark:border-slate-700 hover:border-primary/20 dark:hover:border-primary/50 transition-all">
-            <div className={`flex gap-2 flex-col-reverse sm:flex-row justify-between sm:${projectsEditMode ? "items-end" : "items-center"} mb-3`}>
+        <form
+            onSubmit={(e) => {
+                handleProjectSave(e);
+            }}
+            className="group p-4 md:p-6 rounded-xl border border-gray-100 dark:border-slate-700 hover:border-primary/20 dark:hover:border-primary/50 transition-all">
+            <Button type="submit" className="hidden">
+            </Button>
+            <div className={`flex gap-2 flex-col-reverse sm:flex-row justify-between sm:${currentProjectEditMode ? "items-end" : "items-center"} mb-3`}>
                 {
-                    projectsEditMode ?
+                    currentProjectEditMode ?
                         <div>
                             <Label>
                                 Title
@@ -115,7 +126,7 @@ const MemberProjectCard = ({
                                 defaultValue={project.title}
                                 placeholder='enter a title'
                             />
-                            <InputError keyErr={errorKey} message={titleError} />
+                            <InputError key={shakeKey} message={titleError} />
                         </div>
                         :
                         <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200">
@@ -124,11 +135,12 @@ const MemberProjectCard = ({
                 }
                 <div className="flex gap-3 items-center text-gray-400 dark:text-gray-500">
                     {
-                        projectsEditMode ?
+                        currentProjectEditMode ?
                             <>
                                 <Button
                                     onClick={() => {
                                         setProjectsEditMode(false);
+                                        setCurrentEditingId(null);
                                     }}
                                     className="text-white">
                                     Close
@@ -157,9 +169,7 @@ const MemberProjectCard = ({
                                 }
                                 <Button
                                     onClick={() => {
-                                        resetEditModes();
-                                        setProjectsEditMode(true);
-                                        setZodError(null);
+                                        openProjectInputs();
                                     }}
                                     className="bg-transparent hover:bg-transparent text-gray-400 hover:text-primary size-6">
                                     <Edit className='size-5' />
@@ -167,9 +177,8 @@ const MemberProjectCard = ({
 
                                 <Button
                                     onClick={() => {
-                                        setDeleteOneProjectModal(true);
-                                        const projectIdx = member.projects.findIndex((pr) => pr === project);
-                                        setDeleteingProjectIdx(projectIdx);
+                                        resetEditModes();
+                                        openItemModal?.(project.id, "delete-project");
                                     }}
                                     className="bg-transparent hover:bg-transparent text-gray-400 hover:text-primary size-6">
                                     <Trash className='size-5' />
@@ -180,7 +189,7 @@ const MemberProjectCard = ({
                 </div>
             </div>
             {
-                projectsEditMode ?
+                currentProjectEditMode ?
                     <div className='mb-5'>
                         <Label>
                             Project details
@@ -190,7 +199,7 @@ const MemberProjectCard = ({
                             defaultValue={project.description}
                             placeholder='Describe your work'
                         />
-                        <InputError keyErr={errorKey} message={descriptionError} />
+                        <InputError key={shakeKey} message={descriptionError} />
                     </div>
                     :
                     <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-5">
@@ -200,16 +209,16 @@ const MemberProjectCard = ({
 
             <div>
                 {
-                    projectsEditMode ?
+                    currentProjectEditMode ?
                         <Label className="mb-2 block">
                             Categories
                         </Label>
                         :
                         <></>
                 }
-                <div className={`${projectsEditMode ? "grid sm:grid-cols-3 lg:grid-cols-2" : "flex flex-wrap"} gap-2`}>
+                <div className={`${currentProjectEditMode ? "grid sm:grid-cols-3 lg:grid-cols-2" : "flex flex-wrap"} gap-2`}>
                     {
-                        projectsEditMode ?
+                        currentProjectEditMode ?
                             <>
                                 {tempProjectCategories.map((category, idx) => {
                                     return (
@@ -224,6 +233,7 @@ const MemberProjectCard = ({
                                                     }}
                                                 />
                                                 {
+                                                    tempProjectCategories.length > 1 &&
                                                     <Button
                                                         onClick={() => {
                                                             handleRemoveTempCategory(idx);
@@ -234,7 +244,7 @@ const MemberProjectCard = ({
                                                     </Button>
                                                 }
                                             </div>
-                                            <InputError className='text-xs!' keyErr={errorKey} message={categoriesError?.[idx]?._errors[0]} />
+                                            <InputError className='text-xs!' key={shakeKey} message={categoriesError?.[idx]?._errors[0]} />
                                         </div>
                                     )
                                 })}
@@ -264,7 +274,7 @@ const MemberProjectCard = ({
                 </div>
             </div>
             {
-                projectsEditMode ?
+                currentProjectEditMode ?
                     <div className="flex mt-2 flex-col gap-2">
                         <div>
                             <Label>
@@ -276,7 +286,7 @@ const MemberProjectCard = ({
                                 defaultValue={project.sourceCode}
                                 placeholder="eg. github code link"
                             />
-                            <InputError keyErr={errorKey} message={sourceCodeError} />
+                            <InputError key={shakeKey} message={sourceCodeError} />
                         </div>
                         <div>
                             <Label>
@@ -288,13 +298,13 @@ const MemberProjectCard = ({
                                 defaultValue={project.liveCode}
                                 placeholder="eg. website link"
                             />
-                            <InputError keyErr={errorKey} message={liveCodeError} />
+                            <InputError key={shakeKey} message={liveCodeError} />
                         </div>
                     </div>
                     :
                     <></>
             }
-        </div>
+        </form>
     )
 }
 

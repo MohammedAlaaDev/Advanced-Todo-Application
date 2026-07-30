@@ -13,18 +13,17 @@ import { selectMembers } from "@/features/members/membersSlice"
 import { selectAllTasks } from "@/features/tasks/tasksSlice"
 import { differenceInDays, differenceInHours, differenceInMinutes, parseISO } from "date-fns"
 import noTasks from '@/assets/images/noTasks.png'
-import { Clock,  EyeIcon, X } from 'lucide-react'
+import { Clock, EyeIcon, X } from 'lucide-react'
 import { useNavigate } from "react-router"
 import type { taskObject } from "@/types"
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam"
 
 interface TasksListProps {
     title?: string;
-    setAddOpen?: (open: boolean) => void;
-    setDeletedTaskId?: (id: string) => void;
-    setDeleteOpen?: (open: boolean) => void;
 }
 
-export function TasksList({ title, setAddOpen, setDeletedTaskId, setDeleteOpen }: TasksListProps) {
+const TasksList = ({ title = "Tasks" }: TasksListProps) => {
+    const { openModal, openItemModal } = useQueryParam() as QueryParam;
 
     const now = new Date();
 
@@ -47,7 +46,7 @@ export function TasksList({ title, setAddOpen, setDeletedTaskId, setDeleteOpen }
 
             {tasks.length === 0 ? (
                 <div
-                    onClick={() => setAddOpen?.(true)}
+                    onClick={() => openModal?.("add-task")}
                     className="cursor-pointer w-full h-64 relative overflow-hidden flex items-center justify-center bg-primary/10 rounded-3xl border-primary border-2 border-dotted"
                 >
                     <img src={noTasks} alt="No Tasks" className="absolute inset-0 w-full h-full object-cover opacity-20" />
@@ -82,15 +81,14 @@ export function TasksList({ title, setAddOpen, setDeletedTaskId, setDeleteOpen }
                                         <div className="deleteTask opacity-30 group-hover:opacity-100 transition-all bg-primary absolute top-0 left-0 size-7 rounded-br-lg rounded-tl-sm cursor-pointer flex justify-center items-center">
                                             <X
                                                 onClick={() => {
-                                                    setDeletedTaskId?.(task.id);
-                                                    setDeleteOpen?.(true);
+                                                    openItemModal?.(task.id, "delete-task");
                                                 }}
                                                 className="size-5 text-white" />
                                         </div>
                                         <div className="p-4">
                                             <div
                                                 onClick={() => {
-                                                    navigate(task.id);
+                                                    navigate(`/tasks/${task.id}`);
                                                 }}
                                                 className="h-32 flex items-center justify-center w-full cursor-pointer bg-primary/20 rounded-xl mb-4 relative overflow-hidden">
                                                 {
@@ -151,3 +149,4 @@ export function TasksList({ title, setAddOpen, setDeletedTaskId, setDeleteOpen }
         </div>
     )
 }
+export default TasksList;

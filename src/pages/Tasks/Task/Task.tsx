@@ -1,33 +1,32 @@
 import {
-    Search,
     Users,
     Clock,
     PenLine,
     Edit,
     X,
     Plus,
+    SearchAlert,
+    ArrowLeft,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { selectAllTasks, editTaskTitle, editTaskCategories, editTaskDescription } from "@/features/tasks/tasksSlice";
 import { selectMembers } from "@/features/members/membersSlice";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import EditTaskThumbnailModal from "@/components/Tasks/EditTaskThumbnailModal";
-import AssignMemberTaskModal from "@/pages/Tasks/Task/AssignMemberTaskModal";
 import { taskDetailsSchema } from "@/features/tasks/schemas/taskSchema";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useError } from "@/hooks/useError";
-import { InputError } from "@/components/custom/InputError";
-import EditDeadlineModal from "@/pages/Tasks/Task/EditDeadlineModal";
+import InputError from "@/components/custom/InputError";
 import type { taskObject } from "@/types";
 import TasksSearchBar from "@/components/Tasks/TasksSearchBar";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 
 const Task = () => {
+    const { openModal, openItemModal } = useQueryParam() as QueryParam;
     const { id } = useParams();
     const dispatch = useDispatch();
     const members = useSelector(selectMembers);
@@ -36,39 +35,25 @@ const Task = () => {
 
     const tasksByUserIdArr = Object.entries(task?.tasksByUserId || {});
 
-    const [editThumbnailModalOpen, setEditThumbnailModalOpen] = useState<boolean>(false);
     const [titleEditMode, setTitleEditMode] = useState<boolean>(false);
     const [categoriesEditMode, setCategoriesEditMode] = useState<boolean>(false);
     const [descriptionEditMode, setDescriptionEditMode] = useState<boolean>(false);
-    const [deadlineModalOpen, setDeadlineModalOpen] = useState<boolean>(false);
-    const [assignTaskModalOpen, setAssignTaskModalOpen] = useState<boolean>(false);
-    const [selectedMemberId, setSelectedMemberId] = useState<string>("");
 
     const [titleValue, setTitleValue] = useState<string>("");
     const [descriptionValue, setDescriptionValue] = useState<string>("");
-    const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
     const [categoriesValue, setCategoriesValue] = useState<string[]>([""]);
     const [categoryErrors, setCategoryErrors] = useState<(string | undefined)[]>([]);
 
-    const titleError = useError(undefined);
-    const descriptionError = useError(undefined);
-    const deadlineError = useError(undefined);
+    const [titleError, setTitleError] = useState<string | undefined>(undefined);
+    const [descriptionError, setDescriptionError] = useState<string | undefined>(undefined);
+
     const [errorKey, setErrorKey] = useState<number>(0);
-
-
-    useEffect(() => {
-        if (deadlineModalOpen) {
-            const taskDeadlineDate = new Date(task ? task.deadline : new Date().toISOString());
-            setDeadlineDate(taskDeadlineDate);
-        }
-    }, [deadlineModalOpen])
 
     useEffect(() => {
         if (!task) return;
         setTitleValue(task.title);
         setDescriptionValue(task.description);
         setCategoriesValue(task.categories.length > 0 ? task.categories : [""]);
-        setDeadlineDate(task.deadline ? new Date(task.deadline) : undefined);
     }, [task]);
 
     const existingFilteredCategories = task?.categories.filter((cat) => cat.trim() !== "") || [];
@@ -77,7 +62,6 @@ const Task = () => {
         setTitleEditMode(false);
         setCategoriesEditMode(false);
         setDescriptionEditMode(false);
-        setDeadlineModalOpen(false);
         if (task) setTitleValue(task.title);
     };
 
@@ -96,7 +80,7 @@ const Task = () => {
         if (!validationResult.success) {
             const formatted = validationResult.error.format();
             setErrorKey((pre) => pre + 1);
-            titleError.setErrorMsg(formatted.title?._errors[0]);
+            setTitleError(formatted.title?._errors[0]);
             return;
         }
 
@@ -148,7 +132,7 @@ const Task = () => {
         if (!validationResult.success) {
             const formatted = validationResult.error.format();
             setErrorKey((pre) => pre + 1);
-            descriptionError.setErrorMsg(formatted.description?._errors[0]);
+            setDescriptionError(formatted.description?._errors[0]);
             return;
         }
 
@@ -174,9 +158,36 @@ const Task = () => {
 
     const handleOpenAssignTaskModal = (memberId: string) => {
         resetEditModes();
-        setSelectedMemberId(memberId);
-        setAssignTaskModalOpen(true);
+        openItemModal?.(memberId, "assign-member-task");
     };
+
+    const navigate = useNavigate();
+
+    const openCategoriesInputs = () => {
+        setCategoryErrors([]);
+        resetEditModes();
+        setCategoriesValue(existingFilteredCategories.length > 0 ? existingFilteredCategories : [""]);
+        setCategoriesEditMode(true);
+    }
+
+    const openTitleInput = () => {
+        resetEditModes();
+        setTitleError(undefined);
+        setTitleEditMode(true);
+    }
+
+    if (!task) return (
+        <div className="animate-page flex flex-col items-center justify-center min-h-[calc(100vh-170px)]">
+            <SearchAlert className="text-primary animate-up-down m-0" size={200} strokeWidth={1} />
+            <p className="text-primary mb-4">The selected task doesn't exist</p>
+            <Button
+                onClick={() => navigate("../", { replace: true })}
+                variant="outline"
+            >
+                <ArrowLeft /> Back to tasks
+            </Button>
+        </div>
+    );
 
     return (
         <div className="animate-page space-y-8">
@@ -191,14 +202,14 @@ const Task = () => {
                         <div
                             onClick={() => {
                                 resetEditModes();
-                                setEditThumbnailModalOpen(true);
+                                openModal?.("task-thumbnail");
                             }}
                             className="overlay cursor-pointer bg-black opacity-50 absolute inset-0 size-full"
                         />
                         <Button
                             onClick={() => {
                                 resetEditModes();
-                                setEditThumbnailModalOpen(true);
+                                openModal?.("task-thumbnail");
                             }}
                             className="absolute right-0 bottom-0 rounded-tl-4xl! text-white rounded-none"
                         >
@@ -209,7 +220,7 @@ const Task = () => {
                     <div
                         onClick={() => {
                             resetEditModes();
-                            setEditThumbnailModalOpen(true);
+                            openModal?.("task-thumbnail");
                         }}
                         className="h-88 p-4 w-full bg-primary/10 hover:bg-primary/20 transition-all shadow-md flex items-center justify-center cursor-pointer"
                     >
@@ -234,7 +245,7 @@ const Task = () => {
                                             onChange={(e) => setTitleValue(e.target.value)}
                                             className="md:w-60 lg:w-80 transition-all"
                                         />
-                                        <InputError keyErr={errorKey} message={titleError.errorMsg} />
+                                        <InputError key={errorKey} message={titleError} />
 
                                     </div>
                                 ) : (
@@ -258,9 +269,7 @@ const Task = () => {
                                     <Button
                                         type="button"
                                         onClick={() => {
-                                            titleError.setErrorMsg(undefined);
-                                            resetEditModes();
-                                            setTitleEditMode(true);
+                                            openTitleInput();
                                         }}
                                         className="text-xs"
                                     >
@@ -272,46 +281,7 @@ const Task = () => {
 
 
                         <div className="space-y-4">
-                            <div className="flex flex-wrap items-center gap-2">
-                                {!categoriesEditMode && (
-                                    <>
-                                        {task?.categories.map((cat, idx) => (
-                                            cat ? (
-                                                <Badge
-                                                    key={idx}
-                                                    variant="secondary"
-                                                    className="text-xs font-medium px-2.5 py-0.5 rounded-md"
-                                                >
-                                                    {cat}
-                                                </Badge>
-                                            ) : null
-                                        ))}
-                                        <Button
-                                            type="button"
-                                            className="text-xs font-semibold text-white transition-all"
-                                            onClick={() => {
-                                                setCategoryErrors([]);
-                                                resetEditModes();
-                                                setCategoriesValue(existingFilteredCategories.length > 0 ? existingFilteredCategories : [""]);
-                                                setCategoriesEditMode(true);
-                                            }}
-                                        >
-                                            {existingFilteredCategories.length === 0 ? (
-                                                <>
-                                                    <Plus className="h-4 w-4" />
-                                                    <span className="ml-2">Add tags</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <PenLine className="size-4" />
-                                                    <span className="ml-2">Edit tags</span>
-                                                </>
-                                            )}
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                            {categoriesEditMode && (
+                            {categoriesEditMode ?
                                 <div>
                                     <div className="grid grid-cols-3 gap-3">
                                         {categoriesValue.map((category, index) => (
@@ -348,7 +318,7 @@ const Task = () => {
                                                     ) : null}
                                                 </div>
 
-                                                <InputError keyErr={errorKey + index} message={categoryErrors[index]} />
+                                                <InputError key={errorKey + index} message={categoryErrors[index]} />
                                             </div>
                                         ))}
                                         {
@@ -360,7 +330,9 @@ const Task = () => {
                                         }
                                     </div>
                                     <div className="flex items-center gap-2 my-3">
-                                        <Button type="button" variant="outline" onClick={() => { setCategoriesEditMode(false); setTitleValue(task?.title || ""); }}>
+                                        <Button type="button" variant="outline" onClick={() => {
+                                            setCategoriesEditMode(false);
+                                        }}>
                                             Close
                                         </Button>
                                         <Button className="text-white" type="button" onClick={handleCategoriesEdit}>
@@ -368,7 +340,45 @@ const Task = () => {
                                         </Button>
                                     </div>
                                 </div>
-                            )}
+                                :
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <>
+                                        {task?.categories.map((cat, idx) => (
+                                            cat ? (
+                                                <Badge
+                                                    key={idx}
+                                                    variant="secondary"
+                                                    className="text-xs font-medium px-2.5 py-0.5 rounded-md"
+                                                >
+                                                    {cat}
+                                                </Badge>
+                                            ) : null
+                                        ))}
+                                        <Button
+                                            type="button"
+                                            className="text-xs font-semibold text-white transition-all"
+                                            onClick={() => {
+                                                openCategoriesInputs();
+                                            }}
+                                        >
+                                            {existingFilteredCategories.length === 0 ? (
+                                                <>
+                                                    <Plus className="h-4 w-4" />
+                                                    <span className="ml-2">Add tags</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <PenLine className="size-4" />
+                                                    <span className="ml-2">Edit tags</span>
+                                                </>
+                                            )}
+                                        </Button>
+                                    </>
+                                </div>
+
+
+                            }
+
                         </div>
                     </div>
 
@@ -385,9 +395,8 @@ const Task = () => {
                                     type="button"
                                     className="text-xs"
                                     onClick={() => {
-                                        deadlineError.setErrorMsg(undefined);
                                         resetEditModes();
-                                        setDeadlineModalOpen(true);
+                                        openModal?.("edit-deadline");
                                     }}
                                 >
                                     <PenLine className="size-4 text-white" />
@@ -406,7 +415,7 @@ const Task = () => {
                                     type="button"
                                     className="text-xs"
                                     onClick={() => {
-                                        descriptionError.setErrorMsg(undefined);
+                                        setDescriptionError(undefined);
                                         resetEditModes();
                                         setDescriptionEditMode(true);
                                     }}
@@ -423,7 +432,7 @@ const Task = () => {
                                     className="min-h-32 max-h-64 transition-all"
                                     placeholder="Describe your task requirements"
                                 />
-                                <InputError keyErr={errorKey} message={descriptionError.errorMsg} />
+                                <InputError key={errorKey} message={descriptionError} />
                                 <div className="flex gap-2">
                                     <Button
                                         type="button"
@@ -488,30 +497,6 @@ const Task = () => {
                     </section>
                 </div>
             </div >
-
-            <EditTaskThumbnailModal
-                activeImage={task?.thumbnail}
-                taskId={task?.id}
-                open={editThumbnailModalOpen}
-                setOpen={setEditThumbnailModalOpen}
-            />
-
-            <EditDeadlineModal
-                deadlineDate={deadlineDate}
-                setDeadlineDate={setDeadlineDate}
-                deadlineModalOpen={deadlineModalOpen}
-                setDeadlineModalOpen={setDeadlineModalOpen}
-                task={task}
-            />
-
-            <AssignMemberTaskModal
-                open={assignTaskModalOpen}
-                setOpen={setAssignTaskModalOpen}
-                taskId={task?.id}
-                memberId={selectedMemberId}
-                resetEditModes={resetEditModes}
-            />
-
         </div >
     );
 };

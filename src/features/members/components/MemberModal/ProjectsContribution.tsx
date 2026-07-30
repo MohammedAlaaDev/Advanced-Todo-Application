@@ -1,4 +1,4 @@
-import { InputError } from "@/components/custom/InputError"
+import InputError from "@/components/custom/InputError"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,7 +21,7 @@ import {
 } from "@/features/members/membersSlice"
 import { projectContributionSchema } from "@/features/members/schemas/projectContributionSchema"
 import { Code2, Globe, Plus, Trash, X } from "lucide-react"
-import { forwardRef, useImperativeHandle, useState, type Ref } from "react"
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
 export interface ProjectsContributionRef {
@@ -36,6 +36,21 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
 
     const dispatch = useDispatch();
 
+    const tempProjectsRef = useRef<HTMLDivElement>(null);
+
+    const [submitTrigger, setSubmitTrigger] = useState<number>(0);
+
+    useEffect(() => {
+        const errorElement = tempProjectsRef.current?.querySelector(".input-error");
+
+        if (errorElement) {
+            errorElement?.scrollIntoView({
+                behavior: 'smooth',
+                block: "center",
+            })
+        }
+    }, [submitTrigger])
+
     const handleStep = () => {
         let allValid = true;
 
@@ -48,6 +63,7 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                 allValid = false;
                 setRenderKey(pre => pre + 1);
                 if (error) {
+                    setSubmitTrigger(pre => pre + 1);
                     dispatch(addTempError(data));
                 }
                 return;
@@ -76,19 +92,13 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
     }))
 
     return (
-        <form
-            className="flex flex-col justify-center gap-10"
-            onSubmit={(e) => {
-                e.preventDefault();
-                handleStep();
-            }}>
+        <div ref={tempProjectsRef} className="flex flex-col justify-center gap-10 temp-projects">
             {
                 tempProjects.map((project, projectIdx) => (
-                    <div key={projectIdx} className="rounded-lg relative border-2 border-dashed border-primary/50 bg-primary/10 p-4 space-y-4">
+                    <div key={project.id} className="rounded-lg relative border-2 border-dashed border-primary/50 bg-primary/10 p-4 space-y-4">
                         {
                             tempProjects.length > 1 &&
                             <Button
-                                type="button"
                                 onClick={() => {
                                     dispatch(removeTempProject(projectIdx));
                                 }}
@@ -106,7 +116,7 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                 value={project.title}
                                 id={`p${projectIdx}-title`} placeholder="Portfolio Website"
                             />
-                            <InputError keyErr={projectIdx + renderKey} message={project.errors?.title?._errors[0]} />
+                            <InputError key={project.id + renderKey} message={project.errors?.title?._errors[0]} />
                         </div>
                         <div className="grid gap-1.5">
                             <Label htmlFor={`p${projectIdx}-desc`}>Project Description (Optional)</Label>
@@ -119,7 +129,7 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                 }}
                                 value={project.description}
                             />
-                            <InputError keyErr={projectIdx + renderKey} message={project.errors?.description?._errors[0]} />
+                            <InputError key={project.id + renderKey} message={project.errors?.description?._errors[0]} />
                         </div>
                         <div className="grid gap-1.5">
                             <div className="flex justify-between items-center">
@@ -128,7 +138,6 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                     {
                                         project.category.length > 1 &&
                                         <Button
-                                            type="button"
                                             size="sm"
                                             className="h-6 w-6 rounded-full p-0 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 dark:hover:bg-red-400 hover:bg-red-400 dark:hover:text-white hover:text-white"
                                             onClick={() => {
@@ -142,7 +151,6 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                     {
                                         project.category.length < 6 &&
                                         <Button
-                                            type="button"
                                             size="sm"
                                             className="h-6 w-6 rounded-full p-0 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 dark:hover:bg-primary hover:bg-primary dark:hover:text-white hover:text-white"
                                             onClick={() => {
@@ -170,7 +178,6 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                             {
                                                 project.category.length > 1 &&
                                                 <Button
-                                                    type="button"
                                                     onClick={() => {
                                                         const data = { projectIdx: projectIdx, catIdx: catIdx };
                                                         dispatch(removeTempProjectCategory(data));
@@ -181,7 +188,7 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                                     <X className="h-2 w-2 text-white" />
                                                 </Button>
                                             }
-                                            <InputError keyErr={projectIdx + renderKey} message={project.errors?.category?.[catIdx]?._errors[0]} />
+                                            <InputError key={project.id + renderKey} message={project.errors?.category?.[catIdx]?._errors[0]} />
                                         </div>
                                     ))
                                 }
@@ -201,7 +208,7 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                     id={`p${projectIdx}-source`}
                                     placeholder="https://github.com/..."
                                     className="pl-10" />
-                                <InputError keyErr={projectIdx + renderKey} message={project.errors?.sourceCode?._errors[0]} />
+                                <InputError key={project.id + renderKey} message={project.errors?.sourceCode?._errors[0]} />
 
                             </div>
                         </div>
@@ -218,14 +225,13 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                                     id={`p${projectIdx}-link`}
                                     placeholder="https://project.com"
                                     className="pl-10 " />
-                                <InputError keyErr={projectIdx + renderKey} message={project.errors?.liveCode?._errors[0]} />
+                                <InputError key={project.id + renderKey} message={project.errors?.liveCode?._errors[0]} />
                             </div>
                         </div>
                     </div>
                 ))
             }
-            <button type="submit" className="hidden" />
-        </form>
+        </div >
     )
 }
 

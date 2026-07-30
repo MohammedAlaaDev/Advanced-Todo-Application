@@ -9,58 +9,82 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { CatSizeError, NoteAddError, noteObject } from "@/types";
+import type { NoteError, noteObject } from "@/types";
 import { useInput } from "@/hooks/useInput";
 import { useDispatch, useSelector } from "react-redux";
-import { addTempCategory, editNote, removeTempCategory, resetTempCategory, selectTempCategories, setTempCategory, updateTempCategory } from "@/features/notes/notesSlice";
+import { addNote, editNote, selectNotes } from "@/features/notes/notesSlice";
 import { useEffect, useState } from "react";
-import { noteSchema, tempCategoriesSchema } from "@/features/notes/schemas/noteSchema";
-import { InputError } from "@/components/custom/InputError";
+import { noteSchema } from "@/features/notes/schemas/noteSchema";
+import InputError from "@/components/custom/InputError";
+import { nanoid } from "@reduxjs/toolkit";
 import { format, parseISO } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
+import { useValidate } from "@/hooks/useValidate";
+import { useQueryParam } from "@/hooks/useQueryParam";
 
-interface EditNoteModalProps {
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
-    editedNote?: noteObject | undefined;
+interface ValidationType {
+    error: NoteError | null;
+    validate: (data: any, schema: any, onSuccess: () => void) => boolean;
+    setError: (error: NoteError | null) => void;
+    shakeKey: number;
 }
 
-export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalProps) {
+const NoteModal = () => {
+
+    const notes = useSelector(selectNotes);
+
+    const { modalKey, id, openModal, closeModal, openItemModal, closeItemModal } = useQueryParam();
+
+    const editedNote = notes.find((note) => note.id === id);
+
+    const open = modalKey === "note";
+    const setOpen = (open: boolean) => {
+        if (open) {
+            if (editedNote) {
+                openItemModal(editedNote.id, "note");
+            } else {
+                openModal("note");
+            }
+        } else {
+            if (editedNote) {
+                closeItemModal();
+            } else {
+                closeModal();
+            }
+        }
+    }
 
     const dispatch = useDispatch();
 
-    const [zodError, setZodError] = useState<NoteAddError | null>(null);
-    const [categorySizeError, setCategorySizeError] = useState<CatSizeError | null>(null);
-    const [keyError, setKeyError] = useState<number>(0);
+    const { validate, error, setError, shakeKey } = useValidate() as ValidationType;
+
+    const [categoryLengthError, setCategoryLengthError] = useState<string | undefined>(undefined);
     const [keyCatError, setKeyCatError] = useState<number>(0);
 
     const title = useInput(editedNote?.title || "");
     const details = useInput(editedNote?.description || "");
-    const tempCategoryArr = useSelector(selectTempCategories);
+
+    const [tempCategoryArr, setTempCategoryArr] = useState<string[]>(editedNote?.category || [""]);
 
     useEffect(() => {
         if (open) {
             title.fillInitialState();
             details.fillInitialState();
-            if (editedNote) {
-                dispatch(setTempCategory(editedNote.category))
-            }
+            setTempCategoryArr(editedNote?.category || [""]);
         }
 
-        if (zodError) {
-            setZodError(null);
+        if (error) {
+            setError(null);
         }
 
-        if (categorySizeError) {
-            setCategorySizeError(null);
+        if (categoryLengthError) {
+            setCategoryLengthError(undefined);
         }
 
     }, [open, editedNote])
 
-    const handleEditNote = () => {
-        if (!editedNote || !tempCategoryArr) {
-            return;
-        }
+
+    const handleSubmit = () => {
 
         const formData = {
             noteTitle: title.value,
@@ -68,80 +92,92 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
             tempCategories: tempCategoryArr,
         }
 
-        const validationResult = noteSchema.safeParse(formData);
+        validate(formData, noteSchema, () => {
 
-        if (!validationResult.success) {
-            const error: NoteAddError = validationResult.error.format();
-            setKeyError((pre) => pre + 1);
-            if (error) {
-                setZodError(error);
+            const { noteDetails, noteTitle, tempCategories } = { ...formData };
+            const formattedDate = format(parseISO(new Date().toISOString()), "eeee, dd-MMM-yyyy");
+
+            const filteredCategoryArr = tempCategories.filter((cat) => cat !== "");
+
+            if (editedNote) {
+                const note: noteObject = {
+                    ...editedNote,
+                    category: filteredCategoryArr.length === 0 ? [""] : filteredCategoryArr,
+                    title: noteTitle,
+                    description: noteDetails,
+                    edited: true,
+                    createdAt: formattedDate,
+                }
+                dispatch(editNote(note));
+            } else {
+                const note: noteObject = {
+                    id: nanoid(),
+                    category: filteredCategoryArr.length === 0 ? [""] : filteredCategoryArr,
+                    title: noteTitle,
+                    description: noteDetails,
+                    edited: false,
+                    createdAt: formattedDate,
+                }
+                dispatch(addNote(note));
             }
-            return;
-        }
 
-        const { noteDetails, noteTitle } = validationResult.data;
-        const formattedDate = format(parseISO(new Date().toISOString()), "eeee, dd-MMM-yyyy");
+            resetAllInputs();
+            closeItemModal();
 
-        const filteredCategoryArr = tempCategoryArr.filter((cat) => cat !== "");
+        })
 
-        const note: noteObject = {
-            ...editedNote,
-            category: filteredCategoryArr.length === 0 ? [""] : filteredCategoryArr,
-            title: noteTitle,
-            description: noteDetails,
-            edited: true,
-            createdAt: formattedDate,
-        }
-
-        dispatch(editNote(note));
-
-        resetAllInputs();
-        onOpenChange?.(false);
     }
 
     const resetAllInputs = () => {
-        setZodError(null);
-        setCategorySizeError(null);
+        setError(null);
+        setCategoryLengthError(undefined);
         title.reset();
         details.reset();
-        dispatch(resetTempCategory());
+        setTempCategoryArr([""]);
+    }
+
+    const removeTempCategory = (idx: number) => {
+        setTempCategoryArr((pre) => {
+            const newArr = pre.filter((_, i) => i !== idx);
+            return newArr;
+        });
+        setCategoryLengthError(undefined);
+    }
+
+    const handleTempCategoryChange = (text: string, idx: number) => {
+        const newArr = [...tempCategoryArr];
+        newArr[idx] = text;
+        setTempCategoryArr(newArr);
+        setError(null);
+        setCategoryLengthError(undefined);
     }
 
     const handleAddCategory = () => {
-        if (!tempCategoryArr) {
+        if (tempCategoryArr.length === 6) {
+            setKeyCatError((pre) => pre + 1);
+            setCategoryLengthError("Can't add more than 6 categories");
             return;
         }
 
-        setKeyCatError((pre) => pre + 1);
-        const catSize = { tempCategoriesSize: tempCategoryArr.length + 1 }
-        const validationResult = tempCategoriesSchema.safeParse(catSize);
-
-        if (!validationResult.success) {
-            const tempCatErr = validationResult.error?.format();
-            if (tempCatErr) {
-                setCategorySizeError(tempCatErr);
-            }
-            return;
-        }
-
-        dispatch(addTempCategory());
-        setZodError(null);
+        setTempCategoryArr((pre) => [...pre, ""]);
+        setError(null);
     }
 
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-120 max-h-148 overflow-y-hidden rounded-[2rem] border-none p-0">
 
                 <div className="p-8">
                     <DialogHeader className="mb-6">
                         <DialogTitle className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-200">
-                            Create New Note
+                            {editedNote ? "Edit Note" : "Create New Note"}
                         </DialogTitle>
                     </DialogHeader>
 
                     <form onSubmit={(e) => {
                         e.preventDefault();
-                        handleEditNote();
+                        handleSubmit();
                     }}>
                         <div className="custom-scrollbar max-h-86 overflow-y-auto grid gap-6 p-4">
                             {/* Title Field */}
@@ -155,10 +191,10 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                         id="title"
                                         placeholder="e.g. Task 1 is a priority"
                                         className="pl-10 h-12"
-                                        {...title}
+                                        {...title.bind}
                                     />
                                 </div>
-                                <InputError keyErr={keyError} message={zodError?.noteTitle?._errors[0]} />
+                                <InputError key={shakeKey} message={error?.noteTitle?._errors?.[0]} />
                             </div>
 
                             <div className="grid gap-2">
@@ -168,10 +204,10 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                 <Textarea
                                     id="description"
                                     placeholder="Write more details about this note..."
-                                    className="flex min-h-25 max-h-25 w-full text-sm"
-                                    {...details}
+                                    className="flex min-h-25 max-h-30 custom-scrollbar w-full rounded-xl px-4 py-3 text-sm"
+                                    {...details.bind}
                                 />
-                                <InputError keyErr={keyError} message={zodError?.noteDetails?._errors[0]} />
+                                <InputError key={shakeKey} message={error?.noteDetails?._errors?.[0]} />
                             </div>
 
                             {/* Categories Row */}
@@ -188,10 +224,10 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                                     <Button
                                                         type="button"
                                                         size="sm"
-                                                        className="h-6 w-6 rounded-full p-0 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-400 dark:hover:bg-red-400 hover:text-white"
+                                                        className="h-6 w-6 rounded-full p-0 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-400 dark:hover:bg-red-400 hover:text-white dark:hover:text-white"
                                                         onClick={() => {
-                                                            dispatch(resetTempCategory());
-                                                            setCategorySizeError(null);
+                                                            setTempCategoryArr([""]);
+                                                            setCategoryLengthError(undefined);
                                                         }}
                                                     >
                                                         <Trash />
@@ -202,7 +238,7 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                             <Button
                                                 type="button"
                                                 size="sm"
-                                                className="h-6 w-6 rounded-full p-0 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 dark:hover:bg-primary hover:bg-primary hover:text-white"
+                                                className="h-6 w-6 rounded-full p-0 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 dark:hover:bg-primary hover:bg-primary dark:hover:text-white hover:text-white"
                                                 onClick={() => {
                                                     handleAddCategory();
                                                 }}
@@ -211,7 +247,7 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                             </Button>
                                         </div>
                                     </div>
-                                    <InputError keyErr={keyCatError} message={categorySizeError?.tempCategoriesSize?._errors[0]} />
+                                    <InputError key={keyCatError} message={categoryLengthError} />
                                 </div>
 
                                 <div className="grid gap-4">
@@ -221,21 +257,21 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                                 <Tags className="absolute left-3 top-4 h-4 w-4 text-slate-400" />
                                                 <Input
                                                     placeholder={`Category ${idx + 1}`}
-                                                    className="pl-10 h-12"
+                                                    className="pl-10 pr-14 h-12"
                                                     value={cat}
                                                     onChange={(e) => {
-                                                        dispatch(updateTempCategory({ text: e.target.value, idx }))
+                                                        handleTempCategoryChange(e.target.value, idx);
                                                     }}
                                                 />
                                                 {
                                                     tempCategoryArr && tempCategoryArr.length > 1 ?
                                                         <Button
                                                             type="button"
-                                                            className="bg-transparent hover:bg-transparent cursor-pointer absolute right-3 top-2 text-slate-300 dark:text-slate-400 hover:text-destructive transition-colors"
+                                                            className="bg-transparent dark:hover:bg-transparent hover:bg-transparent cursor-pointer absolute right-3 top-2 text-slate-300 dark:text-slate-400 dark:hover:text-destructive hover:text-destructive transition-colors"
                                                             onClick={() => {
-                                                                dispatch(removeTempCategory(idx))
-                                                                setZodError(null);
-                                                                setCategorySizeError(null);
+                                                                removeTempCategory(idx)
+                                                                setError(null);
+                                                                setCategoryLengthError(undefined);
                                                             }}
                                                         >
                                                             <span className="text-lg"><X size={20} /></span>
@@ -243,7 +279,8 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                                         :
                                                         null
                                                 }
-                                                <InputError keyErr={keyError + idx} message={zodError?.tempCategories?.[idx]?._errors[0]} />
+
+                                                <InputError key={shakeKey + idx} message={error?.tempCategories?.[idx]?._errors?.[0]} />
                                             </div>
                                         ))
                                     }
@@ -256,12 +293,13 @@ export function EditNoteModal({ open, onOpenChange, editedNote }: EditNoteModalP
                                 type="submit"
                                 className="w-full h-14 bg-slate-900 dark:bg-slate-700 dark:hover:bg-primary hover:bg-primary text-white dark:text-slate-200 font-bold rounded-2xl transition-all text-base"
                             >
-                                Edit Note
+                                {editedNote ? "Edit Note" : "Add a Note"}
                             </Button>
                         </DialogFooter>
                     </form>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </DialogContent >
+        </Dialog >
     );
 }
+export default NoteModal;

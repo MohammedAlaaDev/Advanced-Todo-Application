@@ -1,6 +1,6 @@
 import { addMemberImage } from "@/features/members/membersSlice";
 import { Upload } from "lucide-react";
-import { forwardRef, useImperativeHandle, useState } from "react"
+import { forwardRef,  useImperativeHandle, useState } from "react"
 import { useDispatch } from "react-redux";
 
 export interface MemberPhotoRef {
@@ -16,6 +16,8 @@ const MemberPhoto = forwardRef<MemberPhotoRef, {}>((_, ref) => {
         }
     })
 
+
+
     const [memberImages, setMemberImages] = useState(imagesArr);
     const [chosenIdx, setChosenIdx] = useState<number>(-1);
 
@@ -30,7 +32,7 @@ const MemberPhoto = forwardRef<MemberPhotoRef, {}>((_, ref) => {
     const handleStep = () => {
         if (chosenIdx !== -1) {
             const chosenImage = memberImages[chosenIdx].path;
-            dispatch(addMemberImage({chosenImage}));
+            dispatch(addMemberImage({ chosenImage }));
         }
         return true;
     }
@@ -60,8 +62,8 @@ const MemberPhoto = forwardRef<MemberPhotoRef, {}>((_, ref) => {
                     return (
                         <div
                             onClick={() => {
-                                handleChooseToggle(chosenIdx, idx);
                                 setChosenIdx(idx);
+                                handleChooseToggle(chosenIdx, idx);
                             }}
                             key={idx}
                             className={`${item.chosen ? "border-4 opacity-100" : "opacity-50"} transition-all border-primary size-24 rounded-full overflow-hidden shadow-md flex items-center cursor-pointer justify-center`}

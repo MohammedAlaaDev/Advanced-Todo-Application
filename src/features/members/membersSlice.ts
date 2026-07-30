@@ -10,7 +10,7 @@ import type {
 } from "@/types";
 import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 import type { DescriptionType } from "@/features/members/schemas/descriptionSchema";
-import type { updateLinkProps } from "@/components/Members/MemberModal/SkillsAndSocials";
+import type { updateLinkProps } from "@/features/members/components/MemberModal/SkillsAndSocials";
 
 const initialState: MembersState = {
     members: [],
@@ -83,7 +83,7 @@ const membersSlice = createSlice({
                 // fill the projects object
                 const projects = state.form.tempProjects;
                 state.tempMember.projects = [...projects];
-                if(!state.tempMember.avatar){
+                if (!state.tempMember.avatar) {
                     state.tempMember.avatar = `/assets/members/userDummy.webp`;
                 }
                 state.tempMember.createdAt = new Date();
@@ -209,7 +209,15 @@ const membersSlice = createSlice({
             state.tempMember = { ...newTempMember };
         },
         addTempProject: (state: MembersState) => {
-            const emptyProject = { ...initialState.form.tempProjects[0] };
+            const emptyProject = {
+                id: nanoid(),
+                category: [""],
+                title: "",
+                description: "",
+                sourceCode: "",
+                liveCode: "",
+                errors: null,
+            };
             state.form.tempProjects.push(emptyProject);
         },
         removeAllTempProjects: (state: MembersState) => {
@@ -420,15 +428,18 @@ const membersSlice = createSlice({
                 member.projects.push(project);
             }
         },
-        deleteMemberProject: (state: MembersState, action: PayloadAction<{ memberId: string | undefined, projectIdx: number }>) => {
-            const { memberId, projectIdx } = action.payload;
+        deleteMemberProject: (state: MembersState, action: PayloadAction<{ memberId: string | undefined, projectId: string | undefined }>) => {
+            const { memberId, projectId } = action.payload;
             const member = state.members.find((mem) => mem.id === memberId);
             if (member) {
-                member.projects.splice(projectIdx, 1);
+                const chosenProjectIdx = member.projects.findIndex((proj) => proj.id === projectId);
+                if (chosenProjectIdx !== -1) {
+                    member.projects.splice(chosenProjectIdx, 1);
+                }
             }
         },
         addMemberImage: (state: MembersState, action: PayloadAction<{ chosenImage: string }>) => {
-            const {chosenImage} = action.payload;
+            const { chosenImage } = action.payload;
             state.tempMember.avatar = chosenImage;
         },
         editMemberImage: (state: MembersState, action: PayloadAction<{ memberId: string | undefined, chosenImage: string }>) => {

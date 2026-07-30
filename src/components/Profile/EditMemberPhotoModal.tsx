@@ -2,35 +2,46 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { editMemberImage } from "@/features/members/membersSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { editMemberImage, selectMembers } from "@/features/members/membersSlice";
+import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
+import { useParams } from "react-router";
+import type { MemberObject } from "@/types";
 
-interface EditMemberPhotoModalProps {
-    open: boolean;
-    setOpen: (open: boolean) => void;
-    memberId?: string;
-    activeImage?: string;
-}
 
-const EditMemberPhotoModal = ({ open, setOpen, memberId, activeImage }: EditMemberPhotoModalProps) => {
+
+const EditMemberPhotoModal = () => {
+
+    const { modalKey, openItemModal, closeItemModal } = useQueryParam() as QueryParam;
+
+    const { id } = useParams();
+
+    const open = modalKey === "member-photo";
+
+    const member = useSelector(selectMembers).find((mem: MemberObject) => mem.id === id)
+
+    const setOpen = (open: boolean) => {
+        if (open && id) {
+            openItemModal?.(id, "member-photo")
+        } else {
+            closeItemModal?.();
+        }
+    }
 
     const initialArr = Array.from({ length: 9 }, (_, idx) => ({
         path: `/assets/members/member${idx + 1}.png`,
         chosen: false,
     }));
 
-    const imagesArr = initialArr.map((item) => item.path === activeImage ? { ...item, chosen: true, } : { ...item })
+    const imagesArr = initialArr.map((item) => item.path === member?.avatar ? { ...item, chosen: true, } : { ...item });
     const [memberImages, setMemberImages] = useState(imagesArr);
     const [prevChosenIdx, setPrevChosenIdx] = useState<number>(-1);
-
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (!open) {
-            const index = imagesArr.findIndex((item) => item.chosen);
-            setPrevChosenIdx(index);
-            setMemberImages(imagesArr);
-        }
+        const index = imagesArr.findIndex((item) => item.chosen);
+        setPrevChosenIdx(index);
+        setMemberImages(imagesArr);
     }, [open]);
 
     const handleChooseToggle = (oldActiveIdx: number, newActiveIdx: number) => {
@@ -49,10 +60,10 @@ const EditMemberPhotoModal = ({ open, setOpen, memberId, activeImage }: EditMemb
     const handleSave = () => {
         if (prevChosenIdx !== -1) {
             const chosenImage = memberImages.find((item) => item.chosen)?.path;
-            const sentImage = chosenImage ? chosenImage :"/assets/members/userDummy.webp";
-                dispatch(editMemberImage({ memberId, chosenImage: sentImage }));
+            const sentImage = chosenImage ? chosenImage : "/assets/members/userDummy.webp";
+            dispatch(editMemberImage({ memberId: id, chosenImage: sentImage }));
         }
-        setOpen(false);
+        closeItemModal?.();
     };
 
     return (
@@ -83,7 +94,7 @@ const EditMemberPhotoModal = ({ open, setOpen, memberId, activeImage }: EditMemb
                 </div>
 
                 <DialogFooter className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={() => setOpen(false)}>
+                    <Button variant="secondary" onClick={() => closeItemModal?.()}>
                         Cancel
                     </Button>
                     <Button onClick={handleSave}>Save</Button>
