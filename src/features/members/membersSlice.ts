@@ -7,14 +7,17 @@ import type {
     SkillsAndSocialsObject,
     TempPersonalDetails,
     TempProjectErrorData
-} from "@/types";
+} from "@/features/members/types";
 import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 import type { DescriptionType } from "@/features/members/schemas/descriptionSchema";
 import type { updateLinkProps } from "@/features/members/components/MemberModal/SkillsAndSocials";
 
 const initialState: MembersState = {
     members: [],
-    storedEmails: [],
+    stored: {
+        storedEmails: [],
+        storedPhoneNumbers: [],
+    },
     form: {
         tempProjects: [
             {
@@ -55,7 +58,7 @@ const initialState: MembersState = {
             }
         },
         rating: {
-            avgRating: null,
+            avgRating: 0,
             ratedBy: [],
         },
         avatar: "",
@@ -91,28 +94,42 @@ const membersSlice = createSlice({
             fillMemberData();
 
             const email = state.tempMember.personalDetails.email;
+            const phone = state.tempMember.personalDetails.phone;
             if (email) {
-                state.storedEmails.push(email);
+                state.stored.storedEmails.push(email);
             }
 
-            // add an actual member
+            if (phone) {
+                state.stored.storedPhoneNumbers.push(phone);
+            }
+
+            // add a real member
             const newMember = { ...state.tempMember };
             state.members.push(newMember);
         },
         deleteMember: (state: MembersState, action: PayloadAction<string>) => {
             const id = action.payload;
             if (!id) return;
-            const memberIdx = state.members.findIndex((mem) => mem.id === id);
-            state.members.splice(memberIdx, 1);
-            if (memberIdx !== -1) {
-                const email = state.members[memberIdx]?.personalDetails?.email;
-                const emailIdx = state.storedEmails.findIndex((em) => em === email);
+            const member = state.members.find((mem) => mem.id === id);
+            state.members = state.members.filter((mem) => mem.id !== member?.id);
+            if (member) {
+                const email = member.personalDetails.email;
+                const emailIdx = state.stored.storedEmails.findIndex((em) => em === email);
+
+                const phone = member.personalDetails.phone;
+                const phoneIdx = state.stored.storedPhoneNumbers.findIndex((num) => num === phone);
+
                 if (emailIdx !== -1) {
-                    state.storedEmails.splice(emailIdx, 1);
+                    state.stored.storedEmails.splice(emailIdx, 1);
                 }
+
+                if (phoneIdx !== -1) {
+                    state.stored.storedPhoneNumbers.splice(phoneIdx, 1);
+                }
+
             }
         },
-        editNameAndRole: (state: MembersState, action: PayloadAction<{ id: string | undefined, data: { name: string | undefined, role: string | undefined } }>) => {
+        editNameAndRole: (state: MembersState, action: PayloadAction<{ id: string, data: { name: string, role: string } }>) => {
             const { id, data } = action.payload;
 
             const member = state.members.find((mem) => mem.id === id);
@@ -138,18 +155,35 @@ const membersSlice = createSlice({
             if (member) {
                 member.personalDetails.email = newEmail;
             }
-            const emailIdx = state.storedEmails.findIndex((em) => em === oldEmail);
+            const emailIdx = state.stored.storedEmails.findIndex((em) => em === oldEmail);
             if (emailIdx !== -1) {
-                state.storedEmails[emailIdx] = newEmail;
+                state.stored.storedEmails[emailIdx] = newEmail;
             }
         },
-        editPhone: (state: MembersState, action: PayloadAction<{ id: string | undefined, data: { phone: string | undefined } }>) => {
+        editPhone: (state: MembersState, action: PayloadAction<{ id: string | undefined, data: { phone: string } }>) => {
             const { id, data } = action.payload;
             if (!id) return;
             const member = state.members.find((mem) => mem.id === id);
+            const oldPhone = member?.personalDetails.phone;
+            const newPhone = data.phone;
+
             if (member) {
-                member.personalDetails.phone = data.phone;
+                member.personalDetails.phone = newPhone;
             }
+
+            const phoneIdx = state.stored.storedPhoneNumbers.findIndex((num) => num === oldPhone);
+            if (phoneIdx !== -1) {
+                if (!newPhone) {
+                    state.stored.storedPhoneNumbers.splice(phoneIdx, 1);
+                } else {
+                    state.stored.storedPhoneNumbers[phoneIdx] = newPhone;
+                }
+            }
+
+            if (!oldPhone && newPhone) {
+                state.stored.storedPhoneNumbers.push(newPhone);
+            }
+
         },
         editSkills: (state: MembersState, action: PayloadAction<{ id: string | undefined, tempstack: string[] }>) => {
             const { id, tempstack } = action.payload;
@@ -199,14 +233,14 @@ const membersSlice = createSlice({
                     }
                 },
                 rating: {
-                    avgRating: null,
+                    avgRating: 0,
                     ratedBy: [],
                 },
                 avatar: "",
                 createdAt: new Date(),
             }
-            state.form = { ...newForm };
-            state.tempMember = { ...newTempMember };
+            state.form = newForm;
+            state.tempMember = newTempMember;
         },
         addTempProject: (state: MembersState) => {
             const emptyProject = {
@@ -500,7 +534,7 @@ export const {
     addMemberImage,
     editMemberImage,
 } = membersSlice.actions;
-export const selectStoredEmails = (state: RootState) => state.members.storedEmails;
+export const selectStored = (state: RootState) => state.members.stored;
 export const selectMembers = (state: RootState) => state.members.members;
 export const selectTempProjects = (state: RootState) => state.members.form.tempProjects;
 export const selectTempLangs = (state: RootState) => state.members.form.tempSkillsAndSocials.tempLanguages;

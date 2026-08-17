@@ -1,5 +1,5 @@
 // components & icons
-import NoData from "@/components/custom/NoData";
+import NoData from "@/components/NoData";
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PencilIcon, TrashIcon } from "lucide-react";
@@ -24,7 +24,7 @@ import sadSwingCyan from "@/assets/lottie/sadSwingCyan.json";
 import { useThemeContext } from "@/contexts/theme/ThemeProvider";
 
 // types & interfaces
-import Dropdown, { type Option } from "@/components/custom/Dropdown";
+import Dropdown, { type DropdownOption } from "@/components/Dropdown";
 import { useQueryParam } from "@/hooks/useQueryParam";
 
 const TodosList = () => {
@@ -52,7 +52,7 @@ const TodosList = () => {
     }
 
     // for drop down
-    const options: Option[] = [
+    const options: DropdownOption[] = [
         {
             key: "edit",
             text: "Edit",

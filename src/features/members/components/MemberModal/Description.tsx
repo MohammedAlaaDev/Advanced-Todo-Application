@@ -1,4 +1,4 @@
-import InputError from "@/components/custom/InputError";
+import InputError from "@/components/InputError";
 import { Textarea } from "@/components/ui/textarea"
 import { addTempDescription, selectDescription } from "@/features/members/membersSlice";
 import { descriptionSchema } from "@/features/members/schemas/descriptionSchema";
@@ -6,6 +6,7 @@ import { useInput } from "@/hooks/useInput"
 import { useValidate } from "@/hooks/useValidate";
 import { forwardRef, useImperativeHandle, type Ref } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {type DescriptionError} from "@/features/members/types";
 
 export interface DescriptionRef {
     handleStep: () => boolean;
@@ -13,7 +14,7 @@ export interface DescriptionRef {
 
 const Description = ({ }, ref: Ref<DescriptionRef>) => {
 
-    const { error, shakeKey, validate } = useValidate();
+    const { error, shakeKey, validate } = useValidate<DescriptionError>();
 
     const descriptionError = error?.text?._errors?.[0];
 
@@ -27,7 +28,7 @@ const Description = ({ }, ref: Ref<DescriptionRef>) => {
     const handleStep = () => {
 
         const tempDescription = {
-            text: descriptionInput.value,
+            text: descriptionInput.value.trim(),
         }
 
         const result = validate(tempDescription, descriptionSchema, () => {

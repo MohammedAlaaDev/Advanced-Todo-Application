@@ -15,14 +15,14 @@ export const useQueryParam = () => {
     const openModal = (key: string) => {
         const newParams = new URLSearchParams(searchParams);
         newParams.set("modal", key);
-        setSearchParams(newParams);
+        setSearchParams(newParams, { replace: true });
     };
 
 
     const closeModal = () => {
         const newParams = new URLSearchParams(searchParams);
         newParams.delete("modal");
-        setSearchParams(newParams);
+        setSearchParams(newParams, { replace: true });
     };
 
     const openItemModal = (id: string | null, key: string) => {
@@ -31,14 +31,14 @@ export const useQueryParam = () => {
             newParams.set("id", id);
         }
         newParams.set("modal", key);
-        setSearchParams(newParams);
+        setSearchParams(newParams, { replace: true });
     };
 
     const closeItemModal = () => {
         const newParams = new URLSearchParams(searchParams);
         newParams.delete("modal");
         newParams.delete("id");
-        setSearchParams(newParams);
+        setSearchParams(newParams, { replace: true });
     };
 
     const modalKey = searchParams.get("modal");

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, type ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { useSelector } from 'react-redux'
 import { selectTodos } from '@/features/todos/todosSlice'
-import type { TodoObject } from "@/types"
+import type { TodoObject } from "@/features/todos/types"
 import { useThemeContext } from "@/contexts/theme/ThemeProvider"
 
 const chartConfig = {

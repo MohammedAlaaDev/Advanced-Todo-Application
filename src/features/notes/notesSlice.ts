@@ -1,5 +1,5 @@
 import type { RootState } from "@/app/store";
-import type { noteObject, notesState } from "@/types";
+import type { noteObject, notesState } from '@/features/notes/types'
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: notesState = {

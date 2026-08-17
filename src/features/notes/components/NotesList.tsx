@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card'
 import { PencilIcon, TrashIcon } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { selectNotes } from '@/features/notes/notesSlice'
-import type { noteObject } from '@/types'
+import type { noteObject } from '@/features/notes/types'
 
 import sadNote from "@/assets/images/sadNote.png"
 import sadNoteGreen from "@/assets/images/sadNoteGreen.png"
@@ -12,10 +12,10 @@ import sadNotePink from "@/assets/images/sadNotePink.png"
 import sadNoteRed from "@/assets/images/sadNoteRed.png"
 import sadNoteCyan from "@/assets/images/sadNoteCyan.png"
 
-import NoData from '@/components/custom/NoData'
+import NoData from '@/components/NoData'
 import { useThemeContext } from '@/contexts/theme/ThemeProvider'
 import { useQueryParam } from '@/hooks/useQueryParam'
-import Dropdown, { type Option } from '@/components/custom/Dropdown'
+import Dropdown, { type DropdownOption } from '@/components/Dropdown'
 
 const NotesList = () => {
 
@@ -36,7 +36,7 @@ const NotesList = () => {
         { bg: "bg-cyan-100 dark:bg-cyan-900", text: "text-cyan-700 dark:text-cyan-300", hover: "hover:bg-cyan-200 dark:hover:bg-cyan-800" },
     ];
 
-    const options: Option[] = [
+    const options: DropdownOption[] = [
         {
             key: "edit",
             text: "Edit",

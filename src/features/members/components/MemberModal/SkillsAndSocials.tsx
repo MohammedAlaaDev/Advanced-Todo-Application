@@ -1,11 +1,11 @@
-import InputError from "@/components/custom/InputError"
+import InputError from "@/components/InputError"
 import LanguageInputs from "@/features/members/components/MemberModal/LanguageInputs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { addMember, addTempLink, addTempStack, removeTempLink, removeTempStack, selectLanguages, selectTempLinks, selectTempStack, updateTempLink, updateTempStack } from "@/features/members/membersSlice"
 import { skillsSocialsSchema } from "@/features/members/schemas/skillsSocialsSchema"
-import type { LanguageObject, SkillsAndSocialsError } from "@/types"
+import type { LanguageObject, SkillsAndSocialsError } from "@/features/members/types";
 import { Link, Plus, X } from "lucide-react"
 import { forwardRef, useImperativeHandle, useRef, useState, type Ref } from "react"
 import { useDispatch, useSelector } from "react-redux"
@@ -143,11 +143,14 @@ const SkillsAndSocials = ({ }, ref: Ref<SkillsAndSocialsRef>) => {
             return language.lang !== "" && language.level !== "";
         })
 
+        const trimmedStack = tempStack.map((stack: string) => stack.trim());
+        const trimmedLinks = tempLinks.map((link: string) => link.trim());
+
         const tempSkillsAndSocials = {
             tempLanguages: cleanedTempLanguages,
             tempStackAndLinks: {
-                tempStack: tempStack,
-                tempLinks: tempLinks,
+                tempStack: trimmedStack,
+                tempLinks: trimmedLinks,
             }
         }
 
@@ -212,11 +215,11 @@ const SkillsAndSocials = ({ }, ref: Ref<SkillsAndSocialsRef>) => {
 
     return (
         <div className="space-y-6">
-            <div className="rounded-lg border-2 border-dashed border-primary/50 bg-primary/10 p-4 space-y-4">
+            < div className="rounded-lg border-2 border-dashed border-primary/50 bg-primary/10 p-4 space-y-4" >
                 <Label className="text-primary font-bold">Member Languages (Max 4)</Label>
                 <InputError message={langLengthError} key={errorKeyLangLen} />
                 <LanguageInputs setLangLengthError={setLangLengthError} />
-            </div>
+            </div >
 
             <div className="grid gap-1.5">
                 <Label>Tech Stack</Label>
@@ -321,7 +324,7 @@ const SkillsAndSocials = ({ }, ref: Ref<SkillsAndSocialsRef>) => {
                 }
 
             </div>
-        </div>
+        </div >
     )
 }
 

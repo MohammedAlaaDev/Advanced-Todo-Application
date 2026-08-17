@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useQueryParam } from "@/hooks/useQueryParam";
-import type { MemberObject } from "@/types";
+import type { MemberObject } from "@/features/members/types";
 import { Star, FileText, X } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -45,7 +45,7 @@ const MemberCard = ({ member }: MemberCardProps) => {
                         variant="ghost"
                         className="text-primary font-bold hover:bg-primary/50 dark:hover:text-primary hover:text-white px-2"
                         onClick={() => {
-                            navigate(`/profile/${member.id}`);
+                            navigate(`/members/${member.id}`);
                         }}
                     >
                         View Profile

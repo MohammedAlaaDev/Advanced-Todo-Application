@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-export const useValidate = () => {
-    const [error, setError] = useState<any>(null);
+export const useValidate = <T,>() => {
+    const [error, setError] = useState<T|null>(null);
     const [shakeKey, setShakeKey] = useState<number>(0);
 
     const validate = (data: any, schema: any, onSuccess?: () => void) => {

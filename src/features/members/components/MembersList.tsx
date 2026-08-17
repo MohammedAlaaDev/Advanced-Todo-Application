@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { selectMembers } from "@/features/members/membersSlice";
 
 import people from "@/assets/images/people.png";
-import type { MemberObject } from "@/types";
+import type { MemberObject } from "@/features/members/types";
 import { useQueryParam } from "@/hooks/useQueryParam";
 
 interface MembersListProps {

@@ -1,12 +1,11 @@
-import InputError from "@/components/custom/InputError"
-import { Button } from "@/components/ui/button"
+import InputError from "@/components/InputError"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { addTempPersonalDetails, selectPersonalDetails, selectStoredEmails } from "@/features/members/membersSlice"
+import { addTempPersonalDetails, selectPersonalDetails, selectStored } from "@/features/members/membersSlice"
 import { personalDetailsSchema } from "@/features/members/schemas/personalDetailsSchema"
 import { useInput } from "@/hooks/useInput"
 import { useValidate } from "@/hooks/useValidate"
-import type { TempPersonalDetails } from "@/types"
+import type { TempPersonalDetails } from "@/features/members/types";
 import { BriefcaseBusiness, Mail, Phone, User } from "lucide-react"
 import { forwardRef, useImperativeHandle, useState, type Dispatch, type Ref, type SetStateAction } from "react"
 import { useDispatch, useSelector } from "react-redux"
@@ -37,6 +36,7 @@ const PersonalDetails = ({ }, ref: Ref<PersonalDetailsRef>) => {
             setError(null);
         }
         setEmailError("");
+        setPhoneError("");
     }
 
     const nameInput = useInput(storedPersonalDetails.name || "", resetErrors);
@@ -44,9 +44,10 @@ const PersonalDetails = ({ }, ref: Ref<PersonalDetailsRef>) => {
     const emailInput = useInput(storedPersonalDetails.email || "", resetErrors);
     const phoneInput = useInput(storedPersonalDetails.phone || "", resetErrors);
 
-    const storedEmails = useSelector(selectStoredEmails);
+    const { storedEmails, storedPhoneNumbers } = useSelector(selectStored);
 
     const [emailError, setEmailError] = useState("");
+    const [phoneError, setPhoneError] = useState("");
 
     const inputData = [
         {
@@ -82,7 +83,7 @@ const PersonalDetails = ({ }, ref: Ref<PersonalDetailsRef>) => {
             placeholder: "01*********",
             type: "text",
             icon: <Phone className="size-4" />,
-            errorMsg: error?.phone?._errors?.[0] || "",
+            errorMsg: phoneError || error?.phone?._errors?.[0] || "",
             ...phoneInput,
         },
     ]
@@ -95,17 +96,23 @@ const PersonalDetails = ({ }, ref: Ref<PersonalDetailsRef>) => {
     const handleStep = () => {
 
         const personalData: TempPersonalDetails = {
-            name: getValueOf("name"),
-            role: getValueOf("role"),
-            email: getValueOf("email"),
-            phone: getValueOf("phone"),
+            name: getValueOf("name")!.trim(),
+            role: getValueOf("role")!.trim(),
+            email: getValueOf("email")!.trim(),
+            phone: getValueOf("phone")?.trim(),
         }
 
-        const duplicatedEmail = storedEmails.some((em: string) => em === personalData.email);
+        const duplicatedEmail = storedEmails.some((em: string) => em.toLowerCase().trim() === personalData.email.toLowerCase());
+        const duplicatedPhoneNumber = storedPhoneNumbers.some((num: string) => num.trim() === personalData.phone);
 
         if (duplicatedEmail) {
             setShakeKey(pre => pre + 1);
             setEmailError("Email is already taken");
+        }
+
+        if (duplicatedPhoneNumber) {
+            setShakeKey(pre => pre + 1);
+            setPhoneError("Phone Number is already taken");
         }
 
         const result = validate(personalData, personalDetailsSchema, () => {
@@ -115,10 +122,9 @@ const PersonalDetails = ({ }, ref: Ref<PersonalDetailsRef>) => {
         if (!personalData.email || personalData.email.trim() === "") {
             setShakeKey(pre => pre + 1);
             setEmailError("Email is required");
-            // will return false already because of zod ("result" variable is false)
         }
 
-        if (duplicatedEmail) {
+        if (duplicatedEmail || duplicatedPhoneNumber) {
             return false;
         }
 
@@ -152,8 +158,6 @@ const PersonalDetails = ({ }, ref: Ref<PersonalDetailsRef>) => {
                     </div>
                 ))
             }
-            <Button type="submit" className="hidden">
-            </Button>
         </div>
     )
 }

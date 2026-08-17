@@ -3,36 +3,13 @@ import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router";
 
 // Layout Components
-import Header from "@/components/Header/Header";
-import Panel from "@/components/Panel/Panel";
-import Sidebar from "@/components/Sidebar/Sidebar";
+import Header from "@/layouts/Header";
+import Panel from "@/layouts/Panel";
+import Sidebar from "@/layouts/Sidebar";
 
-// Profile Modals
-import AddProjectModal from "@/components/Profile/AddProjectModal";
-import DeleteOneProjectModal from "@/components/Profile/DeleteOneProjectModal";
-import DeleteProjectsModal from "@/components/Profile/DeleteProjectsModal";
-import EditMemberPhotoModal from "@/components/Profile/EditMemberPhotoModal";
-
-// Tasks Modals
-import AddTaskModal from "@/components/Tasks/AddTaskModal";
-import DeleteTaskModal from "@/components/Tasks/DeleteTaskModal";
-import EditTaskThumbnailModal from "@/components/Tasks/EditTaskThumbnailModal";
-import AssignMemberTaskModal from "@/pages/Tasks/Task/AssignMemberTaskModal";
-import EditDeadlineModal from "@/pages/Tasks/Task/EditDeadlineModal";
-
-// Members Modals
-import AddMemberModal from "@/features/members/components/MemberModal/AddMemberModal";
-import DeleteMemberModal from "@/features/members/components/MemberModal/DeleteMemberModal";
-
-// Notes Modals
-import DeleteAllNotesModal from "@/features/notes/components/DeleteAllNotesModal";
-import DeleteNoteModal from "@/features/notes/components/DeleteNoteModal";
-import NoteModal from "@/features/notes/components/NoteModal";
-
-// Todos Modals
-import DeleteAllTodosModal from "@/features/todos/components/DeleteAllTodosModal";
-import DeleteTodoModal from "@/features/todos/components/DeleteTodoModal";
-import TodoModal from "@/features/todos/components/TodoModal";
+// Modals Container to prevent background re-renders
+import ModalsContainer from "@/layouts/ModalsContainer";
+import { useGlobalFormsNavigation } from "@/hooks/useGlobalFormsNavigation";
 
 const RootLayout = () => {
     const { pathname } = useLocation();
@@ -47,6 +24,8 @@ const RootLayout = () => {
     }, [pathname]);
 
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+    useGlobalFormsNavigation();
 
     return (
         <>
@@ -83,27 +62,7 @@ const RootLayout = () => {
 
             {/* Modals */}
 
-            <TodoModal />
-            <DeleteTodoModal />
-            <DeleteAllTodosModal />
-
-            <NoteModal />
-            <DeleteNoteModal />
-            <DeleteAllNotesModal />
-
-            <AddMemberModal />
-            <DeleteMemberModal />
-
-            <EditMemberPhotoModal />
-            <DeleteProjectsModal />
-            <AddProjectModal />
-            <DeleteOneProjectModal />
-
-            <AddTaskModal />
-            <DeleteTaskModal />
-            <EditTaskThumbnailModal />
-            <EditDeadlineModal />
-            <AssignMemberTaskModal />
+            <ModalsContainer />
 
         </>
     )

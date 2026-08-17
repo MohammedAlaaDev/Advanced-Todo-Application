@@ -9,18 +9,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { NoteError, noteObject } from "@/types";
+import type { NoteError, noteObject } from '@/features/notes/types';
 import { useInput } from "@/hooks/useInput";
 import { useDispatch, useSelector } from "react-redux";
 import { addNote, editNote, selectNotes } from "@/features/notes/notesSlice";
-import { useEffect, useState } from "react";
+import { useEffect,  useState } from "react";
 import { noteSchema } from "@/features/notes/schemas/noteSchema";
-import InputError from "@/components/custom/InputError";
+import InputError from "@/components/InputError";
 import { nanoid } from "@reduxjs/toolkit";
 import { format, parseISO } from "date-fns";
 import { Textarea } from "@/components/ui/textarea";
 import { useValidate } from "@/hooks/useValidate";
 import { useQueryParam } from "@/hooks/useQueryParam";
+import { useErrorNavigation } from "@/hooks/useErrorNavigation";
+import type { PreventableEvent } from "@/types";
 
 interface ValidationType {
     error: NoteError | null;
@@ -84,12 +86,15 @@ const NoteModal = () => {
     }, [open, editedNote])
 
 
-    const handleSubmit = () => {
+    const handleSubmit = (e?: PreventableEvent) => {
+        e?.preventDefault();
+
+        const trimmedCategories = tempCategoryArr.map((cat) => cat.trim());
 
         const formData = {
-            noteTitle: title.value,
-            noteDetails: details.value,
-            tempCategories: tempCategoryArr,
+            noteTitle: title.value.trim(),
+            noteDetails: details.value.trim(),
+            tempCategories: trimmedCategories,
         }
 
         validate(formData, noteSchema, () => {
@@ -163,6 +168,7 @@ const NoteModal = () => {
         setError(null);
     }
 
+    const formRef = useErrorNavigation(shakeKey);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -175,10 +181,7 @@ const NoteModal = () => {
                         </DialogTitle>
                     </DialogHeader>
 
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        handleSubmit();
-                    }}>
+                    <form ref={formRef} onSubmit={handleSubmit}>
                         <div className="custom-scrollbar max-h-86 overflow-y-auto grid gap-6 p-4">
                             {/* Title Field */}
                             <div className="grid gap-2">
@@ -290,7 +293,7 @@ const NoteModal = () => {
                         </div>
                         <DialogFooter className="mt-8">
                             <Button
-                                type="submit"
+                                onClick={handleSubmit}
                                 className="w-full h-14 bg-slate-900 dark:bg-slate-700 dark:hover:bg-primary hover:bg-primary text-white dark:text-slate-200 font-bold rounded-2xl transition-all text-base"
                             >
                                 {editedNote ? "Edit Note" : "Add a Note"}

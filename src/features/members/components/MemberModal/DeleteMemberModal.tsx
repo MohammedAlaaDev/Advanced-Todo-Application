@@ -36,25 +36,23 @@ function DeleteMemberModal() {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <form>
-                <DialogContent className="sm:max-w-sm">
-                    <DialogHeader>
-                        <DialogTitle>Delete Member?</DialogTitle>
-                        <DialogDescription>
-                            This Action will permanently delete the member. Are you sure you want to proceed?
-                        </DialogDescription>
-                    </DialogHeader>
+            <DialogContent className="sm:max-w-sm">
+                <DialogHeader>
+                    <DialogTitle>Delete Member?</DialogTitle>
+                    <DialogDescription>
+                        This Action will permanently delete the member. Are you sure you want to proceed?
+                    </DialogDescription>
+                </DialogHeader>
 
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
-                        </DialogClose>
-                        <Button
-                            onClick={handleSubmit}
-                            className="text-white">Delete Permanently</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </form>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button
+                        onClick={handleSubmit}
+                        className="text-white">Delete Permanently</Button>
+                </DialogFooter>
+            </DialogContent>
         </Dialog>
     )
 }

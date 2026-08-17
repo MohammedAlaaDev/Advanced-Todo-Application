@@ -1,5 +1,5 @@
 import type { RootState } from "@/app/store";
-import type { TodoObject, todoState } from "@/types";
+import type { TodoObject, todoState } from "@/features/todos/types"
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: todoState = {

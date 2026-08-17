@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { addLanguageObject, removeLanguageRow, selectLanguages, updateLanguageLevel, updateLanguageText } from "@/features/members/membersSlice";
 import { useDispatch, useSelector } from "react-redux";
-import type { LanguageObject } from "@/types";
+import type { LanguageObject } from "@/features/members/types";
 
 interface langLenthErrorProps {
     setLangLengthError: (errorMsg: string) => void;
@@ -44,7 +44,7 @@ const LanguageInputs = ({ setLangLengthError }: langLenthErrorProps) => {
     ]
 
     return (
-        <>
+        <div>
             {
                 tempLanguages.map((languageObject: LanguageObject) => {
                     const filledRow = languageObject.lang !== "" && languageObject.level !== "";
@@ -130,7 +130,7 @@ const LanguageInputs = ({ setLangLengthError }: langLenthErrorProps) => {
                     )
                 })
             }
-        </>
+        </div>
 
     )
 }

@@ -12,6 +12,7 @@ import { ChevronRight, Check, Plus, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
+import type { PreventableEvent } from "@/types";
 import { addTempProject, removeAllTempProjects, resetAllErrors, resetAllTemps, selectTempProjects } from "@/features/members/membersSlice";
 import PersonalDetails, { type PersonalDetailsRef } from "@/features/members/components/MemberModal/PersonalDetails";
 import Description, { type DescriptionRef } from "@/features/members/components/MemberModal/Description";
@@ -19,7 +20,8 @@ import ProjectsContribution, { type ProjectsContributionRef } from "@/features/m
 import SkillsAndSocials, { type SkillsAndSocialsRef } from "@/features/members/components/MemberModal/SkillsAndSocials";
 import MemberPhoto, { type MemberPhotoRef } from "@/features/members/components/MemberModal/MemberPhoto";
 import { useQueryParam } from "@/hooks/useQueryParam";
-import InputError from "@/components/custom/InputError";
+import InputError from "@/components/InputError";
+import { useErrorNavigation } from "@/hooks/useErrorNavigation";
 type DivElementType = HTMLDivElement | null;
 
 const AddMemberModal = () => {
@@ -35,6 +37,8 @@ const AddMemberModal = () => {
         }
     }
 
+    const [errorKey, setErrorKey] = useState(0);
+
     const dispatch = useDispatch();
 
     const [progress, setProgress] = useState<number>(1);
@@ -45,10 +49,8 @@ const AddMemberModal = () => {
     const tempProjects = useSelector(selectTempProjects);
 
     useEffect(() => {
-
         if (open) {
             setProgress(1);
-        } else {
             dispatch(resetAllTemps());
         }
     }, [open]);
@@ -70,7 +72,10 @@ const AddMemberModal = () => {
         prevProgress.current = progress;
     }, [progress])
 
-    const playModalRefAnimation = () => {
+    const playModalRefAnimation = (e?: Event) => {
+        if (e) {
+            e.preventDefault();
+        }
         modalRef?.current?.classList.remove("animate-shake!");
         closeRef?.current?.classList.remove("bg-primary/90");
         setTimeout(() => {
@@ -89,7 +94,8 @@ const AddMemberModal = () => {
     const skillsAndSocialsRef = useRef<SkillsAndSocialsRef | null>(null);
     const memberPhotoRef = useRef<MemberPhotoRef | null>(null);
 
-    const handleConfirmForm = () => {
+    const handleConfirmForm = (e?: PreventableEvent) => {
+        e?.preventDefault();
         const condition =
             (progress === 1 && personalDetailsRef.current?.handleStep())
             ||
@@ -101,8 +107,11 @@ const AddMemberModal = () => {
             ||
             (progress === 5 && skillsAndSocialsRef.current?.handleStep())
 
+
         if (condition) {
             setProgress(pre => pre + 1);
+        } else {
+            setErrorKey(p => p + 1);
         }
 
     }
@@ -127,18 +136,18 @@ const AddMemberModal = () => {
         dispatch(addTempProject());
     }
 
+    const formRef = useErrorNavigation(errorKey);
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent
                 ref={modalRef}
                 aria-describedby="member modal"
                 onEscapeKeyDown={(e) => {
-                    e.preventDefault();
-                    playModalRefAnimation();
+                    playModalRefAnimation(e);
                 }}
                 onPointerDownOutside={(e) => {
-                    e.preventDefault();
-                    playModalRefAnimation();
+                    playModalRefAnimation(e);
                 }}
                 className={`w-full max-w-75 md:max-w-xl lg:max-w-2xl shadow-2xl max-h-148 p-2 md:p-6`}>
                 <div className="space-y-2 px-2 md:px-6">
@@ -147,10 +156,10 @@ const AddMemberModal = () => {
                     </div>
                     <Progress value={progress * (100 / 5)} className="h-2" />
                 </div>
-                <form onSubmit={(e) => {
-                    e.preventDefault();
-                    handleConfirmForm();
-                }}>
+                <form
+                    ref={formRef}
+                    onSubmit={handleConfirmForm}
+                >
 
                     <div className="custom-scrollbar max-h-100 overflow-y-auto">
 
@@ -234,7 +243,7 @@ const AddMemberModal = () => {
                         }} variant="ghost">{progress > 1 ? "Previous" : "Cancel"}
                         </Button>
                         <Button
-                            type="submit"
+                            onClick={handleConfirmForm}
                             className="gap-2 text-white"
                         >
                             {progress === 5 ? 'Submit' : 'Next Step'}

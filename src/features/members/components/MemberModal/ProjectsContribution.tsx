@@ -1,4 +1,4 @@
-import InputError from "@/components/custom/InputError"
+import InputError from "@/components/InputError"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,8 +20,9 @@ import {
     selectTempProjects
 } from "@/features/members/membersSlice"
 import { projectContributionSchema } from "@/features/members/schemas/projectContributionSchema"
+import { useErrorNavigation } from "@/hooks/useErrorNavigation"
 import { Code2, Globe, Plus, Trash, X } from "lucide-react"
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react"
+import { forwardRef, useImperativeHandle, useState, type Ref } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
 export interface ProjectsContributionRef {
@@ -30,31 +31,26 @@ export interface ProjectsContributionRef {
 
 const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
 
+
     const tempProjects = useSelector(selectTempProjects);
 
     const [renderKey, setRenderKey] = useState<number>(0);
 
     const dispatch = useDispatch();
 
-    const tempProjectsRef = useRef<HTMLDivElement>(null);
-
-    const [submitTrigger, setSubmitTrigger] = useState<number>(0);
-
-    useEffect(() => {
-        const errorElement = tempProjectsRef.current?.querySelector(".input-error");
-
-        if (errorElement) {
-            errorElement?.scrollIntoView({
-                behavior: 'smooth',
-                block: "center",
-            })
-        }
-    }, [submitTrigger])
-
     const handleStep = () => {
         let allValid = true;
 
-        tempProjects.forEach((project, projectIdx) => {
+        const trimmedProjects = tempProjects.map((project) => ({
+            ...project,
+            title: project.title?.trim(),
+            description: project.description?.trim(),
+            sourceCode: project.sourceCode?.trim(),
+            liveCode: project.liveCode?.trim(),
+            category: project.category?.map((cat) => cat?.trim()),
+        }));
+
+        trimmedProjects.forEach((project, projectIdx) => {
             const validationResult = projectContributionSchema.safeParse(project);
 
             if (!validationResult.success) {
@@ -63,7 +59,6 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                 allValid = false;
                 setRenderKey(pre => pre + 1);
                 if (error) {
-                    setSubmitTrigger(pre => pre + 1);
                     dispatch(addTempError(data));
                 }
                 return;
@@ -74,9 +69,9 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
         })
 
         if (allValid) {
-            const result = tempProjects.map((project) => {
+            const result = trimmedProjects.map((project) => {
                 const newProject = { ...project };
-                newProject.category = newProject.category.filter((cat) => cat?.trim() !== "");
+                newProject.category = newProject.category.filter((cat) => cat !== "");
                 return newProject;
             })
             dispatch(addTempMemberProjects(result));
@@ -91,8 +86,10 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
         handleStep,
     }))
 
+    useErrorNavigation(renderKey);
+
     return (
-        <div ref={tempProjectsRef} className="flex flex-col justify-center gap-10 temp-projects">
+        <div className="flex flex-col justify-center gap-10 temp-projects">
             {
                 tempProjects.map((project, projectIdx) => (
                     <div key={project.id} className="rounded-lg relative border-2 border-dashed border-primary/50 bg-primary/10 p-4 space-y-4">
@@ -231,7 +228,7 @@ const ProjectsContribution = ({ }, ref: Ref<ProjectsContributionRef>) => {
                     </div>
                 ))
             }
-        </div >
+        </div>
     )
 }
 

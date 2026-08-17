@@ -1,5 +1,5 @@
 import type { RootState } from "@/app/store";
-import type { taskDetailsObject, tasksState } from "@/types";
+import type { taskDetailsObject, tasksState } from "@/features/tasks/types";
 import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 
 const initialState: tasksState = {

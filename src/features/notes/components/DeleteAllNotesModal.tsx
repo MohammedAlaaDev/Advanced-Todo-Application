@@ -15,10 +15,10 @@ const DeleteAllNotesModal = () => {
 
     const { modalKey, openModal, closeModal } = useQueryParam();
 
-    const open = modalKey === "delete-notes";
+    const open = modalKey === "delete-all-notes";
     const setOpen = (open: boolean) => {
         if (open) {
-            openModal("delete-notes");
+            openModal("delete-all-notes");
         } else {
             closeModal();
         }

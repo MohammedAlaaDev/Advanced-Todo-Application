@@ -1,12 +1,12 @@
 import { createBrowserRouter } from "react-router";
 import RootLayout from "@/layouts/RootLayout";
-import Dashboard from "@/pages/Dashboard/Dashboard";
-import Tasks from "@/pages/Tasks/Tasks";
-import Members from "@/pages/Members/Members";
-import Settings from "@/pages/Settings/Settings";
-import Profile from "@/pages/Profile/Profile";
-import NotFound from "@/pages/NotFound/NotFound";
-import Task from "@/pages/Tasks/Task/Task";
+import Dashboard from "@/pages/Dashboard";
+import Tasks from "@/pages/Tasks";
+import Members from "@/pages/Members";
+import Settings from "@/pages/Settings";
+import Profile from "@/pages/Profile";
+import NotFound from "@/pages/NotFound";
+import Task from "@/pages/Task";
 
 export const router = createBrowserRouter([
     {

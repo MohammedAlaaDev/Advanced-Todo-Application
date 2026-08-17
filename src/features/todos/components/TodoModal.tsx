@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import InputError from "@/components/custom/InputError";
+import InputError from "@/components/InputError";
 
 // hooks
 import { useEffect } from "react";
@@ -23,8 +23,9 @@ import { addTodo, editTodo, selectTodos } from "@/features/todos/todosSlice";
 import { todoSchema, type TodoFormError } from "@/features/todos/schemas/todoSchema";
 
 // types & interfaces
-import type { TodoObject } from "@/types";
+import type { TodoObject } from "@/features/todos/types"
 import { useQueryParam } from "@/hooks/useQueryParam";
+import type { PreventableEvent } from "@/types";
 
 interface InputsData {
     title: string;
@@ -40,6 +41,7 @@ interface ValidationType {
 }
 
 const TodoModal = () => {
+
 
     const { id, modalKey, openModal, closeModal, openItemModal, closeItemModal } = useQueryParam();
 
@@ -87,12 +89,6 @@ const TodoModal = () => {
             titleInput.setValue(editedTodo?.title || "");
             category1Input.setValue(editedTodo?.category?.[0] || "");
             category2Input.setValue(editedTodo?.category?.[1] || "");
-        } else {
-            // wait 0.3s for the modal to close
-            const id = setTimeout(() => {
-                resetErrors();
-            }, 300);
-            return () => clearTimeout(id);
         }
     }, [open])
 
@@ -123,11 +119,13 @@ const TodoModal = () => {
         dispatch(addTodo({ data: addedTodo }));
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = (e?: PreventableEvent) => {
+        e?.preventDefault();
+
         const data = {
-            title: titleInput.value,
-            category1: category1Input.value,
-            category2: category2Input.value,
+            title: titleInput.value.trim(),
+            category1: category1Input.value.trim(),
+            category2: category2Input.value.trim(),
         }
 
         validate(data, todoSchema, () => {
@@ -140,17 +138,16 @@ const TodoModal = () => {
         })
     }
 
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>{editedTodo ? "Edit Todo" : "Add New Todo"}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSubmit();
-                }}
-                    className="grid gap-4 py-4">
+                <form
+                    onSubmit={handleSubmit}
+                    className="todo-form grid gap-4 py-4">
                     <div className="grid gap-2">
                         <Label htmlFor="title">Title</Label>
                         <Input
@@ -181,7 +178,12 @@ const TodoModal = () => {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button className="text-white" type="submit">{editedTodo ? "Edit" : "Add"} Todo</Button>
+                        <Button
+                            onClick={handleSubmit}
+                            className="text-white"
+                        >
+                            {editedTodo ? "Edit Todo" : "Add Todo"}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
