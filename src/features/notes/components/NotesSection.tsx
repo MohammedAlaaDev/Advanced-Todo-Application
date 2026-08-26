@@ -1,4 +1,4 @@
-import { selectNotes } from "@/features/notes/notesSlice";
+import { selectNotesArr } from "@/features/notes/notesSlice";
 import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
@@ -7,7 +7,7 @@ import { useQueryParam } from "@/hooks/useQueryParam";
 
 const NotesSection = () => {
 
-    const notes = useSelector(selectNotes);
+    const notes = useSelector(selectNotesArr);
 
     const { openModal } = useQueryParam();
 
@@ -27,7 +27,7 @@ const NotesSection = () => {
                         notes && notes.length > 0 ?
                             <Button
                                 onClick={() => {
-                                    openModal("delete-notes");
+                                    openModal("delete-all-notes");
                                 }}
                                 size="icon" variant="secondary" className="h-6 w-6 rounded bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 shadow-none">
                                 <Trash className="h-4 w-4" />

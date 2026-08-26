@@ -174,7 +174,10 @@ const InfoCard = ({
 
             setLocalTempStack(cleanedData);
 
-            dispatch(editSkills({ id: member?.id, tempstack: cleanedData }));
+            if (member) dispatch(editSkills({ id: member.id, skillsAndSocials: {
+                ...member.skillsAndSocials,
+                stackAndLinks: { ...member.skillsAndSocials.stackAndLinks, stack: cleanedData },
+            } }));
             setStackEditMode(false);
             resetStackErrors();
         })
@@ -191,7 +194,10 @@ const InfoCard = ({
 
             linksValidation.validate(data, tempLinksSchema, () => {
                 const cleanedData = currentLinks.filter((link) => link !== "");
-                dispatch(updateMemberLinks({ id: member?.id, links: cleanedData }));
+                if (member) dispatch(updateMemberLinks({ id: member.id, skillsAndSocials: {
+                    ...member.skillsAndSocials,
+                    stackAndLinks: { ...member.skillsAndSocials.stackAndLinks, social: cleanedData },
+                } }));
                 setLinksEditMode(false);
             })
 
@@ -221,9 +227,11 @@ const InfoCard = ({
         const cleanedLangs = langs.filter((langObj) => {
             return langObj.lang && langObj.level;
         })
-        const cleanedData = { langs: cleanedLangs, id };
         if (id) {
-            dispatch(updateMemberLanguages(cleanedData));
+            if (member) dispatch(updateMemberLanguages({ id: member.id, skillsAndSocials: {
+                ...member.skillsAndSocials,
+                languages: cleanedLangs,
+            } }));
             setLangsEditMode(false);
         }
     }

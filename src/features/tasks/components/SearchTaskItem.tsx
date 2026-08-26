@@ -1,7 +1,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import type { taskObject } from "@/features/tasks/types";
+import type { TaskObject } from "@/features/tasks/types";
 
-const SearchTaskItem = (task: taskObject) => {
+const SearchTaskItem = (task: TaskObject) => {
     return <>
         <Avatar className="h-10 w-10 ring-2 ring-slate-100 dark:ring-slate-700">
             <AvatarImage src={task.thumbnail} alt={task.title[0]} />

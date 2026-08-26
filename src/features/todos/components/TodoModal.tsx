@@ -19,7 +19,7 @@ import { useInput } from "@/hooks/useInput";
 // redux
 import { useDispatch, useSelector } from "react-redux";
 import { nanoid } from "@reduxjs/toolkit";
-import { addTodo, editTodo, selectTodos } from "@/features/todos/todosSlice";
+import { addTodo, editTodo, selectTodosArr } from "@/features/todos/todosSlice";
 import { todoSchema, type TodoFormError } from "@/features/todos/schemas/todoSchema";
 
 // types & interfaces
@@ -45,7 +45,7 @@ const TodoModal = () => {
 
     const { id, modalKey, openModal, closeModal, openItemModal, closeItemModal } = useQueryParam();
 
-    const todos = useSelector(selectTodos);
+    const todos = useSelector(selectTodosArr);
 
     const editedTodo = todos.find(todo => todo.id === id);
 

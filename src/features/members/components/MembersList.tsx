@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/carousel"
 import MemberCard from "@/features/members/components/MemberCard"
 import { useSelector } from "react-redux";
-import { selectMembers } from "@/features/members/membersSlice";
+import { selectMembersArr } from "@/features/members/membersSlice";
 
 import people from "@/assets/images/people.png";
 import type { MemberObject } from "@/features/members/types";
@@ -19,7 +19,7 @@ interface MembersListProps {
 
 const MembersList = ({ title = "Members" }: MembersListProps) => {
 
-    const members = useSelector(selectMembers);
+    const members = useSelector(selectMembersArr);
     const { openModal } = useQueryParam();
 
     return (

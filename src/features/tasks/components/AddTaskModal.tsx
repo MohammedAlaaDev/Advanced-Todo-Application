@@ -6,18 +6,16 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import TaskDetailsForm, { type TaskDetailsRefType } from "@/features/tasks/components/TaskDetailsForm";
 import MembersChoose from "@/features/tasks/components/MembersChoose";
 import TaskMedia, { type MediaRefType } from "@/features/tasks/components/TaskMedia";
-import { selectMembers } from "@/features/members/membersSlice";
-import type { MemberObject } from "@/features/members/types";
+import { selectMembersArr } from "@/features/members/membersSlice";
 import { addAssociatedMembers, addNewTask, resetTempTask } from "@/features/tasks/tasksSlice";
 import InputError from "@/components/InputError";
 import TaskThumbnail, { type TaskThumbnailRef } from "@/features/tasks/components/TaskThumbnail";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import { useErrorNavigation } from "@/hooks/useErrorNavigation";
 import type { PreventableEvent } from "@/types";
+import type { ModifiedMember } from "@/features/tasks/types";
 
 type DivElementType = HTMLDivElement | null;
-
-type ModifiedMember = MemberObject & { selected: boolean };
 
 const AddTaskModal = () => {
     const { modalKey, openModal, closeModal } = useQueryParam() as QueryParam;
@@ -31,7 +29,7 @@ const AddTaskModal = () => {
         }
     };
 
-    const members = useSelector(selectMembers);
+    const members = useSelector(selectMembersArr);
     const [progress, setProgress] = useState(1);
     const [modifiedMembers, setModifiedMembers] = useState<ModifiedMember[]>([]);
 

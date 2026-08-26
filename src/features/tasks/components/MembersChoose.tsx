@@ -1,10 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { MemberObject } from "@/features/members/types";
+import type { ModifiedMember } from "@/features/tasks/types";
 import { Button } from "@/components/ui/button";
 
-export interface ModifiedMember extends MemberObject {
-    selected: boolean;
-}
+
 
 interface MembersChooseProps {
     modifiedMembers: ModifiedMember[];

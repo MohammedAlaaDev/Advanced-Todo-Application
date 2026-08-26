@@ -1,7 +1,7 @@
 
 import TodosList from "@/features/todos/components/TodosList"
 import { useSelector } from "react-redux"
-import { selectTodos } from "@/features/todos/todosSlice"
+import { selectTodosArr } from "@/features/todos/todosSlice"
 import { Button } from "@/components/ui/button"
 import { Plus, Trash } from "lucide-react"
 import { useQueryParam } from "@/hooks/useQueryParam"
@@ -10,7 +10,7 @@ const TodosSection = () => {
 
     const { openModal } = useQueryParam();
 
-    const todos = useSelector(selectTodos);
+    const todos = useSelector(selectTodosArr);
 
     return (
         <section className="mb-8">

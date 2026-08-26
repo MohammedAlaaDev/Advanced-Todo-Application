@@ -6,8 +6,8 @@ import { PenLine, Upload } from "lucide-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { useRef, type Dispatch, type SetStateAction } from "react";
 import type { PreventableEvent } from "@/types";
-import type { MemberObject } from "@/features/members/types";
-import { roleAndNameSchema } from "@/features/members/schemas/personalDetailsSchema";
+import type { MemberObject, TempPersonalDetails } from "@/features/members/types";
+import { personalDetailsSchema, roleAndNameSchema } from "@/features/members/schemas/personalDetailsSchema";
 import { editNameAndRole } from "@/features/members/membersSlice";
 import { useDispatch } from "react-redux";
 import { useValidate } from "@/hooks/useValidate";
@@ -57,12 +57,14 @@ const ProfileHeader = ({ member, headerEditMode, setHeaderEditMode, resetEditMod
     const name = nameInputRef?.current?.value.trim();
     const role = roleInputRef?.current?.value.trim();
 
-    const data: HeaderData = {
+
+    const data: TempPersonalDetails = {
+      ...member.personalDetails,
       name: name || "",
       role: role || ""
     }
 
-    validate(data, roleAndNameSchema, () => {
+    validate(data, personalDetailsSchema, () => {
       dispatch(editNameAndRole({ id: member.id, data }));
       setHeaderEditMode(false);
     })

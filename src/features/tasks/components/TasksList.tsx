@@ -9,13 +9,13 @@ import {
     CarouselNext
 } from "@/components/ui/carousel"
 import { useSelector } from "react-redux"
-import { selectMembers } from "@/features/members/membersSlice"
-import { selectAllTasks } from "@/features/tasks/tasksSlice"
+import { selectMembersArr } from "@/features/members/membersSlice"
+import { selectTasksArr } from "@/features/tasks/tasksSlice"
 import { differenceInDays, differenceInHours, differenceInMinutes, parseISO } from "date-fns"
 import noTasks from '@/assets/images/noTasks.png'
 import { Clock, EyeIcon, X } from 'lucide-react'
 import { useNavigate } from "react-router"
-import type { taskObject } from "@/features/tasks/types";
+import type { TaskObject } from "@/features/tasks/types";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam"
 
 interface TasksListProps {
@@ -27,10 +27,10 @@ const TasksList = ({ title = "Tasks" }: TasksListProps) => {
 
     const now = new Date();
 
-    const members = useSelector(selectMembers);
+    const members = useSelector(selectMembersArr);
 
-    const tasks = useSelector(selectAllTasks);
-    const usersImgs = tasks.map((task: taskObject) => {
+    const tasks = useSelector(selectTasksArr);
+    const usersImgs = tasks.map((task: TaskObject) => {
         return task.associatedMembersIDs.map((memberID) => {
             return members.find((mem) => mem.id === memberID)?.avatar;
         })

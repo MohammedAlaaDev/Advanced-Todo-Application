@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { editTaskThumbnail, selectAllTasks } from "@/features/tasks/tasksSlice";
+import { editTaskThumbnail, selectTask } from "@/features/tasks/tasksSlice";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import { useParams } from "react-router";
+import type { RootState } from "@/app/store";
 
 const EditTaskThumbnailModal = () => {
     const { modalKey, openModal, closeModal } = useQueryParam() as QueryParam;
@@ -20,8 +21,7 @@ const EditTaskThumbnailModal = () => {
         }
     };
 
-    const tasks = useSelector(selectAllTasks);
-    const task = tasks.find((t) => t.id === taskId);
+    const task = useSelector((state: RootState) => taskId ? selectTask(state, taskId) : undefined);
     const activeImage = task?.thumbnail;
 
     const initialArr = Array.from({ length: 6 }, (_, idx) => ({

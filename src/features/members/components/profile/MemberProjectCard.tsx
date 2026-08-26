@@ -90,7 +90,10 @@ const MemberProjectCard = ({
 
             data.category = cleanedCategory;
 
-            dispatch(editMemberProject({ data, memberId: member.id }));
+            dispatch(editMemberProject({
+                memberId: member.id,
+                projects: member.projects.map((item) => item.id === data.id ? data : item),
+            }));
             setTempProjectCategories(data.category.length === 0 ? [""] : data.category);
             setProjectsEditMode(false);
             setCurrentEditingId(null);

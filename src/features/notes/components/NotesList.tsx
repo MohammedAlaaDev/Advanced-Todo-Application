@@ -2,8 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { PencilIcon, TrashIcon } from 'lucide-react'
 import { useSelector } from 'react-redux'
-import { selectNotes } from '@/features/notes/notesSlice'
-import type { noteObject } from '@/features/notes/types'
+import { selectNotesArr } from '@/features/notes/notesSlice'
 
 import sadNote from "@/assets/images/sadNote.png"
 import sadNoteGreen from "@/assets/images/sadNoteGreen.png"
@@ -19,7 +18,7 @@ import Dropdown, { type DropdownOption } from '@/components/Dropdown'
 
 const NotesList = () => {
 
-    const notes = [...useSelector(selectNotes)].reverse();
+    const notes = [...useSelector(selectNotesArr)].reverse();
 
     const { openModal } = useQueryParam();
 
@@ -73,7 +72,7 @@ const NotesList = () => {
         <>
             {
                 notes && notes.length > 0 ?
-                    notes.map((note: noteObject) => (
+                    notes.map((note) => (
                         <Card key={note.id} className="transition-all border-0 shadow-sm p-4 bg-primary/10 ring-1 ring-primary/50 rounded-2xl">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">

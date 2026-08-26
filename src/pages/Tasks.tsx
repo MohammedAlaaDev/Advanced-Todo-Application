@@ -2,7 +2,7 @@
 
 // State Management & Utilities
 import { useSelector } from 'react-redux';
-import { selectAllTasks } from '@/features/tasks/tasksSlice';
+import { selectTasksArr } from '@/features/tasks/tasksSlice';
 import { useQueryParam, type QueryParam } from '@/hooks/useQueryParam';
 
 // UI & Icons
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 
 // Components
 import TasksList from '@/features/tasks/components/TasksList';
-import type { taskObject } from '@/features/tasks/types';
+import type { TaskObject } from '@/features/tasks/types';
 import Searchbar from '@/components/Searchbar';
 import RecentCards from '@/components/RecentCards';
 import type { DropdownOption } from '@/components/Dropdown';
@@ -33,17 +33,17 @@ const dropdownOptions: DropdownOption[] = [
 
 const Tasks = () => {
     const { openModal } = useQueryParam() as QueryParam;
-    const tasks = useSelector(selectAllTasks);
+    const tasks = useSelector(selectTasksArr);
 
     const recentTasks = tasks.length ? tasks.slice(-3) : [];
 
-    const filterFunction = (data: taskObject[], debouncedQuery: string) => {
+    const filterFunction = (data: TaskObject[], debouncedQuery: string) => {
         return data.filter((item) => {
             return item.title?.toLowerCase().includes(debouncedQuery.toLowerCase());
         })
     }
 
-    const getId = (task: taskObject) => task.id;
+    const getId = (task: TaskObject) => task.id;
 
     return (
         <div className="space-y-12 animate-page relative">

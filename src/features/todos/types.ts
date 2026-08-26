@@ -1,3 +1,5 @@
+import type { EntityState } from "@reduxjs/toolkit";
+
 export interface TodoObject {
     id: string;
     title: string;
@@ -8,6 +10,4 @@ export interface TodoObject {
     edited?: boolean;
 }
 
-export interface todoState {
-    todos: TodoObject[];
-}
+export interface todoState extends EntityState<TodoObject, string> { }

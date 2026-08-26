@@ -1,8 +1,10 @@
 import type { taskCategoriesSchema, taskDescriptionSchema, taskDetailsSchema, taskTitleSchema } from "@/features/tasks/schemas/taskDetailsSchema";
 import type z from "zod";
+import type { MemberObject } from "@/features/members/types";
+import type { EntityState } from "@reduxjs/toolkit";
 
-export interface taskByUserId {
-    [userId: string]: string[];
+export interface ModifiedMember extends MemberObject {
+    selected: boolean;
 }
 
 export interface taskDetailsObject {
@@ -12,19 +14,18 @@ export interface taskDetailsObject {
     deadline: string,
 }
 
-export interface taskObject extends taskDetailsObject {
+export interface TaskObject extends taskDetailsObject {
     id: string,
     progress: number,
     media: string[],
     associatedMembersIDs: string[],
-    tasksByUserId: taskByUserId,
+    tasksByUserId: {[userId: string]: string[]},
     createdAt: string;
     thumbnail: string;
 }
 
-export interface tasksState {
-    tasks: taskObject[];
-    tempTaskDetails: taskObject;
+export interface TasksState extends EntityState<TaskObject, string> {
+    tempTaskDetails: TaskObject;
 }
 
 export type TaskError = z.inferFormattedError<typeof taskDetailsSchema>;

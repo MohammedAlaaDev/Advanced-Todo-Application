@@ -3,6 +3,7 @@ import type { emailSchema, personalDetailsSchema, phoneSchema } from "@/features
 import type { projectContributionSchema } from "@/features/members/schemas/projectContributionSchema";
 import { tempLinksSchema, type skillsSocialsSchema, type tempStackSchema } from "@/features/members/schemas/skillsSocialsSchema";
 import { descriptionSchema } from "@/features/members/schemas/descriptionSchema";
+import type { EntityState } from "@reduxjs/toolkit";
 
 // ==========================================
 // Members Types
@@ -76,8 +77,7 @@ export interface MemberObject {
     createdAt: Date;
 }
 
-export interface MembersState {
-    members: MemberObject[],
+export interface MembersState extends EntityState<MemberObject, string> {
     stored: {
         storedEmails: string[],
         storedPhoneNumbers: string[],
@@ -92,6 +92,37 @@ export interface MembersState {
 export interface NestedCategory {
     projectIdx: number,
     catIdx: number
+}
+
+export interface ChangeInputData {
+    text: string;
+    projectIdx: number;
+    catIdx?: number;
+}
+
+export interface UpdateLinkProps {
+    idx: number;
+    text: string;
+}
+
+export interface MemberDescriptionUpdate {
+    id: string;
+    description: TempDescription;
+}
+
+export interface MemberContactUpdate {
+    id: string;
+    personalDetails: TempPersonalDetails;
+}
+
+export interface MemberSkillsUpdate {
+    id: string;
+    skillsAndSocials: SkillsAndSocialsObject;
+}
+
+export interface MemberProjectsUpdate {
+    memberId: string;
+    projects: MemberProject[];
 }
 
 // ==========================================

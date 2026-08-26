@@ -37,8 +37,6 @@ const PersonalData = ({
 }: PersonalDataProps
 ) => {
 
-    const id = member?.id;
-
     // Refs 
     const descriptionRef = useRef<null | HTMLTextAreaElement>(null);
     const emailInputRef = useRef<null | HTMLInputElement>(null);
@@ -74,7 +72,7 @@ const PersonalData = ({
         }
 
         descriptionValidation.validate(data, descriptionSchema, () => {
-            dispatch(editDescription({ id, data }));
+            if (member) dispatch(editDescription({ id: member.id, description: data }));
             setDescriptionEditMode(false);
         })
 
@@ -103,7 +101,7 @@ const PersonalData = ({
                 return;
             }
 
-            dispatch(editEmail({ id, data }));
+            if (member) dispatch(editEmail({ id: member.id, personalDetails: { ...member.personalDetails, email: data.email! } }));
             setEmailEditMode(false);
 
         })
@@ -132,7 +130,7 @@ const PersonalData = ({
             }
 
             phoneValidation.validate(data, phoneSchema, () => {
-                dispatch(editPhone({ id, data }));
+                if (member) dispatch(editPhone({ id: member.id, personalDetails: { ...member.personalDetails, phone: data.phone } }));
                 setPhoneEditMode(false);
             })
 

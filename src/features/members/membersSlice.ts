@@ -2,18 +2,24 @@ import type { RootState } from "@/app/store";
 import type {
     LanguageObject,
     MemberProject,
+    MemberObject,
     MembersState,
     NestedCategory,
     SkillsAndSocialsObject,
     TempPersonalDetails,
-    TempProjectErrorData
+    TempProjectErrorData,
+    ChangeInputData,
+    MemberContactUpdate,
+    MemberDescriptionUpdate,
+    MemberProjectsUpdate,
+    MemberSkillsUpdate
 } from "@/features/members/types";
-import { createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSlice, nanoid, type PayloadAction } from "@reduxjs/toolkit";
 import type { DescriptionType } from "@/features/members/schemas/descriptionSchema";
-import type { updateLinkProps } from "@/features/members/components/MemberModal/SkillsAndSocials";
 
-const initialState: MembersState = {
-    members: [],
+const membersAdapter = createEntityAdapter<MemberObject>();
+
+const initialState: MembersState = membersAdapter.getInitialState({
     stored: {
         storedEmails: [],
         storedPhoneNumbers: [],
@@ -64,13 +70,7 @@ const initialState: MembersState = {
         avatar: "",
         createdAt: new Date(),
     },
-}
-
-export interface ChangeInputData {
-    text: string;
-    projectIdx: number;
-    catIdx?: number;
-}
+});
 
 const membersSlice = createSlice({
     name: "members",
@@ -105,13 +105,13 @@ const membersSlice = createSlice({
 
             // add a real member
             const newMember = { ...state.tempMember };
-            state.members.push(newMember);
+            membersAdapter.addOne(state, newMember);
         },
         deleteMember: (state: MembersState, action: PayloadAction<string>) => {
             const id = action.payload;
             if (!id) return;
-            const member = state.members.find((mem) => mem.id === id);
-            state.members = state.members.filter((mem) => mem.id !== member?.id);
+            const member = state.entities[id];
+            membersAdapter.removeOne(state, id);
             if (member) {
                 const email = member.personalDetails.email;
                 const emailIdx = state.stored.storedEmails.findIndex((em) => em === email);
@@ -129,68 +129,57 @@ const membersSlice = createSlice({
 
             }
         },
-        editNameAndRole: (state: MembersState, action: PayloadAction<{ id: string, data: { name: string, role: string } }>) => {
+        editNameAndRole: (state: MembersState, action: PayloadAction<{ id: string, data: TempPersonalDetails }>) => {
             const { id, data } = action.payload;
 
-            const member = state.members.find((mem) => mem.id === id);
-            if (member) {
-                member.personalDetails.name = data.name;
-                member.personalDetails.role = data.role;
-            }
-        },
-        editDescription: (state: MembersState, action: PayloadAction<{ id: string | undefined, data: { text: string | undefined } }>) => {
-            const { id, data } = action.payload;
-            const member = state.members.find((mem) => mem.id === id);
-            if (member) {
-                member.description.text = data.text;
-            }
+            if (!id) return;
+
+            membersAdapter.updateOne(state, {
+                id,
+                changes: {
+                    personalDetails:data,
+                }
+            })
 
         },
-        editEmail: (state: MembersState, action: PayloadAction<{ id: string | undefined, data: { email: string | undefined } }>) => {
-            const { id, data } = action.payload;
-            if (!id || !data.email) return;
-            const member = state.members.find((mem) => mem.id === id);
-            const oldEmail = member?.personalDetails.email;
-            const newEmail = data.email;
-            if (member) {
-                member.personalDetails.email = newEmail;
-            }
+        editDescription: (state: MembersState, action: PayloadAction<MemberDescriptionUpdate>) => {
+            const { id, description } = action.payload;
+            membersAdapter.updateOne(state, { id, changes: { description } });
+
+        },
+        editEmail: (state: MembersState, action: PayloadAction<MemberContactUpdate>) => {
+            const { id, personalDetails } = action.payload;
+            const member = state.entities[id];
+            const oldEmail = member.personalDetails.email;
+            membersAdapter.updateOne(state, { id, changes: { personalDetails } });
             const emailIdx = state.stored.storedEmails.findIndex((em) => em === oldEmail);
             if (emailIdx !== -1) {
-                state.stored.storedEmails[emailIdx] = newEmail;
+                state.stored.storedEmails[emailIdx] = personalDetails.email;
             }
         },
-        editPhone: (state: MembersState, action: PayloadAction<{ id: string | undefined, data: { phone: string } }>) => {
-            const { id, data } = action.payload;
-            if (!id) return;
-            const member = state.members.find((mem) => mem.id === id);
+        editPhone: (state: MembersState, action: PayloadAction<MemberContactUpdate>) => {
+            const { id, personalDetails } = action.payload;
+            const member = state.entities[id];
             const oldPhone = member?.personalDetails.phone;
-            const newPhone = data.phone;
-
-            if (member) {
-                member.personalDetails.phone = newPhone;
-            }
+            membersAdapter.updateOne(state, { id, changes: { personalDetails } });
 
             const phoneIdx = state.stored.storedPhoneNumbers.findIndex((num) => num === oldPhone);
             if (phoneIdx !== -1) {
-                if (!newPhone) {
+                if (!personalDetails.phone) {
                     state.stored.storedPhoneNumbers.splice(phoneIdx, 1);
                 } else {
-                    state.stored.storedPhoneNumbers[phoneIdx] = newPhone;
+                    state.stored.storedPhoneNumbers[phoneIdx] = personalDetails.phone || "";
                 }
             }
 
-            if (!oldPhone && newPhone) {
-                state.stored.storedPhoneNumbers.push(newPhone);
+            if (!oldPhone && personalDetails.phone) {
+                state.stored.storedPhoneNumbers.push(personalDetails.phone);
             }
 
         },
-        editSkills: (state: MembersState, action: PayloadAction<{ id: string | undefined, tempstack: string[] }>) => {
-            const { id, tempstack } = action.payload;
-            const member = state.members.find((mem) => mem.id === id);
-            if (member) {
-                member.skillsAndSocials.stackAndLinks.stack = tempstack;
-            }
+        editSkills: (state: MembersState, action: PayloadAction<MemberSkillsUpdate>) => {
+            const { id, skillsAndSocials } = action.payload;
+            membersAdapter.updateOne(state, { id, changes: { skillsAndSocials } });
         },
         resetAllTemps: (state: MembersState) => {
             const newForm = {
@@ -360,13 +349,9 @@ const membersSlice = createSlice({
                 chosenRow.level = level;
             }
         },
-        updateMemberLanguages: (state: MembersState, action: PayloadAction<{ id: string | undefined, langs: LanguageObject[] }>) => {
-            const { id, langs } = action.payload;
-
-            const member = state.members.find((mem) => mem.id === id);
-            if (member) {
-                member.skillsAndSocials.languages = [...langs];
-            }
+        updateMemberLanguages: (state: MembersState, action: PayloadAction<MemberSkillsUpdate>) => {
+            const { id, skillsAndSocials } = action.payload;
+            membersAdapter.updateOne(state, { id, changes: { skillsAndSocials } });
         },
         addLanguageObject: (state: MembersState) => {
             const languagesArr = state.form.tempSkillsAndSocials.tempLanguages;
@@ -417,71 +402,40 @@ const membersSlice = createSlice({
         removeTempLink: (state: MembersState, action: PayloadAction<number>) => {
             state.form.tempSkillsAndSocials.tempStackAndLinks.tempLinks.splice(action.payload, 1);
         },
-        updateTempLink: (state: MembersState, action: PayloadAction<updateLinkProps>) => {
+        updateTempLink: (state: MembersState, action: PayloadAction<{ idx: number, text: string }>) => {
             const { idx, text } = action.payload;
             state.form.tempSkillsAndSocials.tempStackAndLinks.tempLinks[idx] = text;
         },
-        updateMemberLinks: (state: MembersState, action: PayloadAction<{ id: string | undefined, links: string[] | undefined }>) => {
-            const { id, links } = action.payload;
-            const member = state.members.find((mem) => mem.id === id);
-            if (member && links) {
-                if (links.length === 0) {
-                    member.skillsAndSocials.stackAndLinks.social = [""];
-                } else {
-                    member.skillsAndSocials.stackAndLinks.social = [...links];
-                }
-            }
+        updateMemberLinks: (state: MembersState, action: PayloadAction<MemberSkillsUpdate>) => {
+            const { id, skillsAndSocials } = action.payload;
+            membersAdapter.updateOne(state, {
+                id,
+                changes: { skillsAndSocials },
+            });
         },
-        editMemberProject: (state: MembersState, action: PayloadAction<{ data: MemberProject, memberId: string | undefined }>) => {
-            const { data, memberId } = action.payload;
-            const member = state.members.find((mem) => (mem.id === memberId));
-            const chosenProject = member?.projects.find((proj) => proj.id === data.id);
-            if (chosenProject) {
-                chosenProject.category = data.category;
-                chosenProject.description = data.description;
-                chosenProject.liveCode = data.liveCode;
-                chosenProject.sourceCode = data.sourceCode;
-                chosenProject.title = data.title;
-            }
+        editMemberProject: (state: MembersState, action: PayloadAction<MemberProjectsUpdate>) => {
+            const { projects, memberId } = action.payload;
+            membersAdapter.updateOne(state, { id: memberId, changes: { projects } });
         },
-        deleteAllMemberProjects: (state: MembersState, action: PayloadAction<string | undefined>) => {
-            const memberId = action.payload;
-            if (!memberId) return;
-
-            const member = state.members.find((mem) => mem.id === memberId);
-            if (member) {
-                member.projects = [];
-            }
+        deleteAllMemberProjects: (state: MembersState, action: PayloadAction<MemberProjectsUpdate>) => {
+            const { memberId, projects } = action.payload;
+            membersAdapter.updateOne(state, { id: memberId, changes: { projects } });
         },
-        addMemberProject: (state: MembersState, action: PayloadAction<{ memberId: string | undefined, project: MemberProject }>) => {
-            const { memberId, project } = action.payload;
-            if (!memberId) return;
-
-            const member = state.members.find((mem) => mem.id === memberId);
-            if (member) {
-                member.projects.push(project);
-            }
+        addMemberProject: (state: MembersState, action: PayloadAction<MemberProjectsUpdate>) => {
+            const { memberId, projects } = action.payload;
+            membersAdapter.updateOne(state, { id: memberId, changes: { projects } });
         },
-        deleteMemberProject: (state: MembersState, action: PayloadAction<{ memberId: string | undefined, projectId: string | undefined }>) => {
-            const { memberId, projectId } = action.payload;
-            const member = state.members.find((mem) => mem.id === memberId);
-            if (member) {
-                const chosenProjectIdx = member.projects.findIndex((proj) => proj.id === projectId);
-                if (chosenProjectIdx !== -1) {
-                    member.projects.splice(chosenProjectIdx, 1);
-                }
-            }
+        deleteMemberProject: (state: MembersState, action: PayloadAction<MemberProjectsUpdate>) => {
+            const { memberId, projects } = action.payload;
+            membersAdapter.updateOne(state, { id: memberId, changes: { projects } });
         },
         addMemberImage: (state: MembersState, action: PayloadAction<{ chosenImage: string }>) => {
             const { chosenImage } = action.payload;
             state.tempMember.avatar = chosenImage;
         },
-        editMemberImage: (state: MembersState, action: PayloadAction<{ memberId: string | undefined, chosenImage: string }>) => {
+        editMemberImage: (state: MembersState, action: PayloadAction<{ memberId: string, chosenImage: string }>) => {
             const { memberId, chosenImage } = action.payload;
-            const member = state.members.find((mem) => mem.id === memberId);
-            if (member) {
-                member.avatar = chosenImage;
-            }
+            membersAdapter.updateOne(state, { id: memberId, changes: { avatar: chosenImage } });
         }
     }
 })
@@ -535,7 +489,13 @@ export const {
     editMemberImage,
 } = membersSlice.actions;
 export const selectStored = (state: RootState) => state.members.stored;
-export const selectMembers = (state: RootState) => state.members.members;
+export const {
+    selectAll: selectMembersArr,
+    selectById: selectMember,
+    selectEntities: selectMembersEntities,
+    selectIds: selectMembersIds,
+    selectTotal: selectMembersCount,
+} = membersAdapter.getSelectors((state: RootState) => state.members);
 export const selectTempProjects = (state: RootState) => state.members.form.tempProjects;
 export const selectTempLangs = (state: RootState) => state.members.form.tempSkillsAndSocials.tempLanguages;
 export const selectTempStack = (state: RootState) => state.members.form.tempSkillsAndSocials.tempStackAndLinks.tempStack;

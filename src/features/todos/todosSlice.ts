@@ -1,44 +1,47 @@
 import type { RootState } from "@/app/store";
 import type { TodoObject, todoState } from "@/features/todos/types"
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createEntityAdapter, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-const initialState: todoState = {
-    todos: [],
-}
+const todosAdapter = createEntityAdapter<TodoObject>();
+const initialState: todoState = todosAdapter.getInitialState();
 
 export const todosSlice = createSlice({
     name: "todos",
     initialState,
     reducers: {
         addTodo: (state: todoState, action: PayloadAction<{ data: TodoObject }>) => {
-            const { data } = action.payload;
-            state.todos.push(data);
+            todosAdapter.addOne(state, action.payload.data);
         },
         toggleTodo: (state: todoState, action: PayloadAction<string>) => {
-            const toggledTodo = state.todos.find((todo: TodoObject) => todo.id === action.payload);
-            if (toggledTodo) toggledTodo.isCompleted = !toggledTodo.isCompleted;
+            const currentTodo = state.entities[action.payload];
+            todosAdapter.updateOne(state, {
+                id: action.payload,
+                changes: { isCompleted: !currentTodo.isCompleted },
+            })
         },
         editTodo: (state: todoState, action: PayloadAction<{ data: TodoObject }>) => {
-            const { data } = action.payload;
 
-            const editedTodo = state.todos.find((todo: TodoObject) => todo.id === data.id);
-            if (editedTodo) {
-                editedTodo.title = data.title;
-                editedTodo.category = data.category;
-                editedTodo.editedAt = data.editedAt;
-                editedTodo.edited = true;
-            }
+            todosAdapter.updateOne(state, {
+                id: action.payload.data.id,
+                changes: action.payload.data,
+            })
+            
         },
         deleteTodo: (state: todoState, action: PayloadAction<string>) => {
-            const deletedId = action.payload;
-            state.todos = state.todos.filter((todo) => todo.id !== deletedId);
+            todosAdapter.removeOne(state, action.payload);
         },
         deleteAllTodos: (state: todoState) => {
-            state.todos = [];
+            todosAdapter.removeAll(state);
         }
     }
 })
 
 export const { addTodo, toggleTodo, editTodo, deleteTodo, deleteAllTodos } = todosSlice.actions
-export const selectTodos = (state: RootState) => state.todos.todos;
+export const {
+    selectAll: selectTodosArr,
+    selectById: selectTodo,
+    selectEntities: selectTodosEntities,
+    selectIds: selectTodosIds,
+    selectTotal: selectTodosCount,
+} = todosAdapter.getSelectors((state: RootState) => state.todos);
 export default todosSlice.reducer

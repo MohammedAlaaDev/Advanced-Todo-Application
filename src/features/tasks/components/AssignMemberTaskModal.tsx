@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import InputError from "@/components/InputError";
 import { Plus, Trash, X } from "lucide-react";
-import { selectMembers } from "@/features/members/membersSlice";
-import { selectAllTasks, editTaskMemberTasks } from "@/features/tasks/tasksSlice";
+import { selectMembersArr } from "@/features/members/membersSlice";
+import { selectTask, editMemberTasks } from "@/features/tasks/tasksSlice";
 import type { MemberObject } from "@/features/members/types";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import { useParams } from "react-router";
 import { useErrorNavigation } from "@/hooks/useErrorNavigation";
 import type { PreventableEvent } from "@/types";
+import type { RootState } from "@/app/store";
 
 const AssignMemberTaskModal = () => {
     const dispatch = useDispatch();
@@ -29,8 +30,8 @@ const AssignMemberTaskModal = () => {
         }
     };
 
-    const members = useSelector(selectMembers);
-    const task = useSelector(selectAllTasks).find((task) => task.id === taskId);
+    const members = useSelector(selectMembersArr);
+    const task = useSelector((state: RootState) => taskId ? selectTask(state, taskId) : undefined);
     const member = members.find((m: MemberObject) => m.id === memberId);
     const memberName = member?.personalDetails.name;
     const [tasks, setTasks] = useState<string[]>([""]);
@@ -107,7 +108,10 @@ const AssignMemberTaskModal = () => {
         }
 
         if (memberId && taskId) {
-            dispatch(editTaskMemberTasks({ taskId, memberId, tasks: cleanedTasks }));
+            dispatch(editMemberTasks({
+                taskId,
+                tasksByUserId: { ...task?.tasksByUserId, [memberId]: cleanedTasks },
+            }));
         }
         closeItemModal?.();
     };

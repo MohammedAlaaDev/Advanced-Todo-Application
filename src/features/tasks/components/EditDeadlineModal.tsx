@@ -2,10 +2,11 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
-import { editTaskDeadline, selectAllTasks } from "@/features/tasks/tasksSlice";
+import { editTaskDeadline, selectTask } from "@/features/tasks/tasksSlice";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
+import type { RootState } from "@/app/store";
 
 const EditDeadlineModal = () => {
     const dispatch = useDispatch();
@@ -22,8 +23,7 @@ const EditDeadlineModal = () => {
         }
     };
 
-    const tasks = useSelector(selectAllTasks);
-    const task = tasks.find((t) => t.id === taskId);
+    const task = useSelector((state: RootState) => taskId ? selectTask(state, taskId) : undefined);
 
     const [deadlineDate, setDeadlineDate] = useState<Date | undefined>(undefined);
 

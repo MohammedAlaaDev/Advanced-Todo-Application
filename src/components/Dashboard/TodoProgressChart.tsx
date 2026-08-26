@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/chart"
 import { format } from "date-fns"
 import { useSelector } from "react-redux"
-import { selectTodos } from "@/features/todos/todosSlice"
+import { selectTodosArr } from "@/features/todos/todosSlice"
 
 const chartConfig = {
     Todos: {
@@ -34,8 +34,8 @@ const chartConfig = {
 const TodoProgressChart = () => {
     const currentDate = format(new Date().toISOString(), "eeee - d MMMM yyyy");
 
-    const todosCount = useSelector(selectTodos).length;
-    const completedTodosCount = useSelector(selectTodos).filter((todo) => todo.isCompleted).length;
+    const todosCount = useSelector(selectTodosArr).length;
+    const completedTodosCount = useSelector(selectTodosArr).filter((todo) => todo.isCompleted).length;
     const chartData = [
         { browser: "safari", Todos: completedTodosCount, fill: "var(--color-safari)" },
     ]

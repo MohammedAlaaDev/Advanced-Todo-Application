@@ -1,3 +1,4 @@
+import type { RootState } from "@/app/store";
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -8,15 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { deleteAllMemberProjects } from "@/features/members/membersSlice";
+import { deleteAllMemberProjects, selectMember } from "@/features/members/membersSlice";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
 
 const DeleteProjectsModal = () => {
   const dispatch = useDispatch();
 
   const { id } = useParams();
+  const member = useSelector((state:RootState) => id ? selectMember(state, id) : undefined);
 
   const { modalKey, closeItemModal, openItemModal } = useQueryParam() as QueryParam;
 
@@ -45,7 +47,7 @@ const DeleteProjectsModal = () => {
           </DialogClose>
           <Button
             onClick={() => {
-              dispatch(deleteAllMemberProjects(id));
+              if (member) dispatch(deleteAllMemberProjects({ memberId: member.id, projects: [] }));
               setOpen(false);
             }}
           >Delete All</Button>

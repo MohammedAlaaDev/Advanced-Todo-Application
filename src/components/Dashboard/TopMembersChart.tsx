@@ -2,7 +2,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, type ChartConfig, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { useSelector } from 'react-redux'
-import { selectTodos } from '@/features/todos/todosSlice'
+import { selectTodosArr } from '@/features/todos/todosSlice'
 import type { TodoObject } from "@/features/todos/types"
 import { useThemeContext } from "@/contexts/theme/ThemeProvider"
 
@@ -13,7 +13,7 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const TopMembersChart = () => {
-    const completedTodosCount = useSelector(selectTodos).filter((todo: TodoObject) => todo.isCompleted).length;
+    const completedTodosCount = useSelector(selectTodosArr).filter((todo: TodoObject) => todo.isCompleted).length;
 
     const { theme } = useThemeContext();
 

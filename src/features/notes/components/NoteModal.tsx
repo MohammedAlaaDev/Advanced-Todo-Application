@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { NoteError, noteObject } from '@/features/notes/types';
+import type { NoteError, NoteObject } from '@/features/notes/types';
 import { useInput } from "@/hooks/useInput";
 import { useDispatch, useSelector } from "react-redux";
-import { addNote, editNote, selectNotes } from "@/features/notes/notesSlice";
-import { useEffect,  useState } from "react";
+import { addNote, editNote, selectNotesArr } from "@/features/notes/notesSlice";
+import { useEffect, useState } from "react";
 import { noteSchema } from "@/features/notes/schemas/noteSchema";
 import InputError from "@/components/InputError";
 import { nanoid } from "@reduxjs/toolkit";
@@ -33,11 +33,21 @@ interface ValidationType {
 
 const NoteModal = () => {
 
-    const notes = useSelector(selectNotes);
+    const notes = useSelector(selectNotesArr);
 
     const { modalKey, id, openModal, closeModal, openItemModal, closeItemModal } = useQueryParam();
 
     const editedNote = notes.find((note) => note.id === id);
+
+    const resetErrors = () => {
+        if (error) {
+            setError(null);
+        }
+
+        if (categoryLengthError) {
+            setCategoryLengthError(undefined);
+        }
+    }
 
     const open = modalKey === "note";
     const setOpen = (open: boolean) => {
@@ -63,8 +73,8 @@ const NoteModal = () => {
     const [categoryLengthError, setCategoryLengthError] = useState<string | undefined>(undefined);
     const [keyCatError, setKeyCatError] = useState<number>(0);
 
-    const title = useInput(editedNote?.title || "");
-    const details = useInput(editedNote?.description || "");
+    const title = useInput(editedNote?.title || "", resetErrors);
+    const details = useInput(editedNote?.description || "", resetErrors);
 
     const [tempCategoryArr, setTempCategoryArr] = useState<string[]>(editedNote?.category || [""]);
 
@@ -75,13 +85,7 @@ const NoteModal = () => {
             setTempCategoryArr(editedNote?.category || [""]);
         }
 
-        if (error) {
-            setError(null);
-        }
-
-        if (categoryLengthError) {
-            setCategoryLengthError(undefined);
-        }
+        resetErrors();
 
     }, [open, editedNote])
 
@@ -105,7 +109,7 @@ const NoteModal = () => {
             const filteredCategoryArr = tempCategories.filter((cat) => cat !== "");
 
             if (editedNote) {
-                const note: noteObject = {
+                const note: NoteObject = {
                     ...editedNote,
                     category: filteredCategoryArr.length === 0 ? [""] : filteredCategoryArr,
                     title: noteTitle,
@@ -115,7 +119,7 @@ const NoteModal = () => {
                 }
                 dispatch(editNote(note));
             } else {
-                const note: noteObject = {
+                const note: NoteObject = {
                     id: nanoid(),
                     category: filteredCategoryArr.length === 0 ? [""] : filteredCategoryArr,
                     title: noteTitle,
@@ -150,9 +154,11 @@ const NoteModal = () => {
     }
 
     const handleTempCategoryChange = (text: string, idx: number) => {
-        const newArr = [...tempCategoryArr];
-        newArr[idx] = text;
-        setTempCategoryArr(newArr);
+        setTempCategoryArr((prev) => {
+            const newArr = [...prev];
+            newArr[idx] = text;
+            return newArr;
+        });
         setError(null);
         setCategoryLengthError(undefined);
     }

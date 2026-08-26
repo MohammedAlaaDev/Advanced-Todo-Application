@@ -11,8 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
-import { selectAllTasks, editTaskTitle, editTaskCategories, editTaskDescription } from "@/features/tasks/tasksSlice";
-import { selectMembers } from "@/features/members/membersSlice";
+import { selectTasksArr, editTaskTitle, editTaskCategories, editTaskDescription } from "@/features/tasks/tasksSlice";
+import { selectMembersArr } from "@/features/members/membersSlice";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import InputError from "@/components/InputError";
-import type { TaskCategoriesError, TaskDescriptionError, taskObject, TaskTitleError } from "@/features/tasks/types";
+import type { TaskCategoriesError, TaskDescriptionError, TaskObject, TaskTitleError } from "@/features/tasks/types";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import Searchbar from "@/components/Searchbar";
 import SearchTaskItem from "@/features/tasks/components/SearchTaskItem";
@@ -33,9 +33,9 @@ const Task = () => {
     const { openModal, openItemModal } = useQueryParam() as QueryParam;
     const { id } = useParams();
     const dispatch = useDispatch();
-    const members = useSelector(selectMembers);
-    const tasks = useSelector(selectAllTasks)
-    const task = tasks.find((task: taskObject) => task.id === id);
+    const members = useSelector(selectMembersArr);
+    const tasks = useSelector(selectTasksArr)
+    const task = tasks.find((task: TaskObject) => task.id === id);
 
     const tasksByUserIdArr = Object.entries(task?.tasksByUserId || {});
 
@@ -197,13 +197,13 @@ const Task = () => {
             </Button>
         </div>
     );
-    const filterFunction = (data: taskObject[], debouncedQuery: string) => {
+    const filterFunction = (data: TaskObject[], debouncedQuery: string) => {
         return data.filter((item) => {
             return item.title?.toLowerCase().includes(debouncedQuery.toLowerCase());
         })
     }
 
-    const getId = (task: taskObject) => task.id;
+    const getId = (task: TaskObject) => task.id;
     return (
         <div className="animate-page space-y-8">
             {/* Search Header */}

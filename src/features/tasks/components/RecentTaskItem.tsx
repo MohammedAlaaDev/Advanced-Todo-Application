@@ -1,11 +1,11 @@
 import type { DropdownOption } from '@/components/Dropdown';
-import type { taskObject } from '@/features/tasks/types';
+import type {TaskObject } from '@/features/tasks/types';
 import Dropdown from '@/components/Dropdown';
 import { format } from 'date-fns';
 
 
 const RecentTaskItem = (
-    task: taskObject,
+    task: TaskObject,
     options: DropdownOption[],
     handleAction: (id: string, action: string) => void,
     shape?: string

@@ -2,7 +2,7 @@
 
 // State Management & Hooks
 import { useSelector } from 'react-redux';
-import { selectMembers } from '@/features/members/membersSlice';
+import { selectMembersArr } from '@/features/members/membersSlice';
 import { useQueryParam } from '@/hooks/useQueryParam';
 
 // UI & Icons
@@ -36,7 +36,7 @@ const Members = () => {
 
     const { openModal } = useQueryParam();
 
-    const members = useSelector(selectMembers);
+    const members = useSelector(selectMembersArr);
 
     const recentMembers = members.length > 0 ? members.slice(-3) : [];
 

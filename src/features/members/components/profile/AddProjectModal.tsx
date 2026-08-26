@@ -8,14 +8,15 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { projectContributionSchema } from "@/features/members/schemas/projectContributionSchema"
 import { nanoid } from "@reduxjs/toolkit"
 import type { MemberProject, ProjectContributionError } from "@/features/members/types";
-import { addMemberProject } from "@/features/members/membersSlice"
-import { useDispatch } from "react-redux"
+import { addMemberProject, selectMember } from "@/features/members/membersSlice"
+import { useDispatch, useSelector } from "react-redux"
 import InputError from "@/components/InputError"
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam"
 import { useParams } from "react-router"
 import { useValidate } from "@/hooks/useValidate"
 import { useErrorNavigation } from "@/hooks/useErrorNavigation"
 import type { PreventableEvent } from "@/types";
+import type { RootState } from "@/app/store"
 
 interface ValidationType {
   validate: (data: MemberProject, schema: typeof projectContributionSchema, onSuccess: () => void) => void;
@@ -29,6 +30,7 @@ const AddProjectModal = () => {
   const dispatch = useDispatch();
 
   const { id } = useParams();
+  const member = useSelector((state: RootState) => id ? selectMember(state, id) : undefined);
 
   const { modalKey, closeModal, openModal } = useQueryParam() as QueryParam;
 
@@ -133,7 +135,7 @@ const AddProjectModal = () => {
     validate(data, projectContributionSchema, () => {
       data.category = data.category.filter((c) => c !== "");
 
-      dispatch(addMemberProject({ memberId: id, project: data }));
+      if (member) dispatch(addMemberProject({ memberId: member.id, projects: [...member.projects, data] }));
       setOpen(false);
       setTempCategory([""]);
     })

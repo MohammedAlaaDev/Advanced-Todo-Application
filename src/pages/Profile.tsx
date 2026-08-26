@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router";
 
 // State Management
 import { useSelector } from "react-redux";
-import { selectMembers } from "@/features/members/membersSlice";
+import { selectMembersArr } from "@/features/members/membersSlice";
 
 // Types
 import type { MemberObject } from "@/features/members/types";
@@ -22,7 +22,7 @@ const Profile = () => {
 
     const { id } = useParams();
 
-    const members = useSelector(selectMembers);
+    const members = useSelector(selectMembersArr);
 
     const member = members.find((m: MemberObject) => m.id === id);
 

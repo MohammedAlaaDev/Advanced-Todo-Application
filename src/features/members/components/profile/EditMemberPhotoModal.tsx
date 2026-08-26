@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { editMemberImage, selectMembers } from "@/features/members/membersSlice";
+import { editMemberImage, selectMember } from "@/features/members/membersSlice";
 import { useQueryParam, type QueryParam } from "@/hooks/useQueryParam";
 import { useParams } from "react-router";
-import type { MemberObject } from "@/features/members/types";
+import type { RootState } from "@/app/store";
 
 
 
@@ -18,7 +18,7 @@ const EditMemberPhotoModal = () => {
 
     const open = modalKey === "member-photo";
 
-    const member = useSelector(selectMembers).find((mem: MemberObject) => mem.id === id)
+    const member = useSelector((state: RootState) => id ? selectMember(state, id) : undefined)
 
     const setOpen = (open: boolean) => {
         if (open && id) {
@@ -61,7 +61,7 @@ const EditMemberPhotoModal = () => {
         if (prevChosenIdx !== -1) {
             const chosenImage = memberImages.find((item) => item.chosen)?.path;
             const sentImage = chosenImage ? chosenImage : "/assets/members/userDummy.webp";
-            dispatch(editMemberImage({ memberId: id, chosenImage: sentImage }));
+            if (id) dispatch(editMemberImage({ memberId: id, chosenImage: sentImage }));
         }
         closeItemModal?.();
     };

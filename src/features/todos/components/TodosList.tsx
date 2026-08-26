@@ -6,11 +6,11 @@ import { PencilIcon, TrashIcon } from "lucide-react";
 
 // redux
 import { useDispatch, useSelector } from "react-redux";
-import { selectTodos } from "@/features/todos/todosSlice";
+import { selectTodosArr } from "@/features/todos/todosSlice";
 import { toggleTodo } from "@/features/todos/todosSlice";
 
 // date fns
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow, formatDistanceToNowStrict } from 'date-fns';
 
 // lottie animations (6 colors)
 import sadSwingBlue from "@/assets/lottie/sadSwingBlue.json";
@@ -35,7 +35,7 @@ const TodosList = () => {
     const dispatch = useDispatch();
 
     // show the most recent and uncompleted todos first
-    const todos = [...useSelector(selectTodos)].reverse();
+    const todos = [...useSelector(selectTodosArr)].reverse();
     const sortedTodos = todos.sort((a, b) => Number(a.isCompleted) - Number(b.isCompleted));
 
     // depending on specific key, take a certain action
@@ -81,30 +81,34 @@ const TodosList = () => {
         <>
             {
                 sortedTodos && sortedTodos.length > 0 ?
-                    sortedTodos.map((todo) => (
-                        <div key={todo.id} className="transition-all bg-primary/10 p-3 rounded-xl border border-primary/50">
-                            <div className="flex justify-between items-center mb-2">
-                                <div className="flex items-center gap-3">
-                                    <Checkbox id={todo.id} checked={todo.isCompleted} onCheckedChange={() => dispatch(toggleTodo(todo.id))} className="cursor-pointer mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary rounded text-white" />
-                                    <label htmlFor={todo.id} className={`cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-primary ${todo.isCompleted ? "opacity-60 line-through dark:decoration-gray-50 decoration-gray-500" : ""}`}>
-                                        {todo.title}
-                                    </label>
+                    sortedTodos.map((todo) => {
+                        const createdDate = formatDistanceToNow(todo.createdAt, { addSuffix: true });
+                        const editedDate = formatDistanceToNow(todo.editedAt, { addSuffix: true });
+                        return (
+                            <div key={todo.id} className="transition-all bg-primary/10 p-3 rounded-xl border border-primary/50">
+                                <div className="flex justify-between items-center mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <Checkbox id={todo.id} checked={todo.isCompleted} onCheckedChange={() => dispatch(toggleTodo(todo.id))} className="cursor-pointer mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary rounded text-white" />
+                                        <label htmlFor={todo.id} className={`cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-primary ${todo.isCompleted ? "opacity-60 line-through dark:decoration-gray-50 decoration-gray-500" : ""}`}>
+                                            {todo.title}
+                                        </label>
+                                    </div>
+                                    <Dropdown options={options} handleChoose={(key: string) => {
+                                        handleAction(key, todo.id);
+                                    }} />
                                 </div>
-                                <Dropdown options={options} handleChoose={(key: string) => {
-                                    handleAction(key, todo.id);
-                                }} />
-                            </div>
-                            <div className="flex items-center justify-between pl-7">
-                                <div className="flex gap-1">
-                                    {todo.category.map((cat, idx) => (
-                                        cat &&
-                                        <Badge key={cat + idx} variant="secondary" className="bg-primary text-primary-foreground h-5 px-1.5 text-[10px] rounded">{cat}</Badge>
-                                    ))}
+                                <div className="flex items-center justify-between pl-7">
+                                    <div className="flex gap-1">
+                                        {todo.category.map((cat, idx) => (
+                                            cat &&
+                                            <Badge key={cat + idx} variant="secondary" className="bg-primary text-primary-foreground h-5 px-1.5 text-[10px] rounded">{cat}</Badge>
+                                        ))}
+                                    </div>
                                 </div>
+                                <span className="pl-7 text-[10px] w-18 text-muted-foreground">{(todo.edited ? `Edited ${editedDate}` : `Created ${createdDate}`)}</span>
                             </div>
-                            <span className="pl-7 text-[10px] w-18 text-muted-foreground">{(todo.edited ? "Edited " : "Created ") + formatDistanceToNow(new Date(todo.editedAt), { addSuffix: true })}</span>
-                        </div>
-                    ))
+                        )
+                    })
                     :
                     <div onClick={() => {
                         openModal("todo")

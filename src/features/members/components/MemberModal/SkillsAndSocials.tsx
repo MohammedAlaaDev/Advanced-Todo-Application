@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { addMember, addTempLink, addTempStack, removeTempLink, removeTempStack, selectLanguages, selectTempLinks, selectTempStack, updateTempLink, updateTempStack } from "@/features/members/membersSlice"
 import { skillsSocialsSchema } from "@/features/members/schemas/skillsSocialsSchema"
-import type { LanguageObject, SkillsAndSocialsError } from "@/features/members/types";
+import type { LanguageObject, SkillsAndSocialsError, UpdateLinkProps } from "@/features/members/types";
 import { Link, Plus, X } from "lucide-react"
 import { forwardRef, useImperativeHandle, useRef, useState, type Ref } from "react"
 import { useDispatch, useSelector } from "react-redux"
@@ -13,11 +13,6 @@ import { useValidate } from "@/hooks/useValidate"
 
 export interface SkillsAndSocialsRef {
     handleStep: () => boolean;
-}
-
-export interface updateLinkProps {
-    idx: number;
-    text: string;
 }
 
 interface StackAndSocialsType {
@@ -87,7 +82,7 @@ const SkillsAndSocials = ({ }, ref: Ref<SkillsAndSocialsRef>) => {
         dispatch(removeTempLink(idx));
     }
 
-    const handleUpdateTempLinks = (object: updateLinkProps) => {
+    const handleUpdateTempLinks = (object: UpdateLinkProps) => {
         dispatch(updateTempLink(object));
     }
 
